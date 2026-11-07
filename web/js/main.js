@@ -52,7 +52,7 @@ function renderAlbum(manifest) {
     return;
   }
 
-  document.title = `${album.name} – Photo Portfolio`;
+  document.title = `img11.jpg - ${album.name}`;
   const titleEl = document.getElementById("album-title");
   if (titleEl) titleEl.textContent = album.name;
   const dateEl = document.getElementById("album-date");

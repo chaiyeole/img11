@@ -46,6 +46,19 @@ header a.label:hover {
   color: var(--fg);
 }
 
+.back-link {
+  display: inline-block;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.back-link:hover {
+  color: var(--fg);
+}
+
 .album-date {
   margin: 0.4rem 0 0;
 }
@@ -162,6 +175,8 @@ main {
   top: 0;
   bottom: 0;
   width: 15%;
+  display: flex;
+  align-items: center;
   background: none;
   border: 0;
   color: #fff;
@@ -177,10 +192,14 @@ main {
 
 .lightbox-nav.prev {
   left: 0;
+  justify-content: flex-start;
+  padding-left: 1.5rem;
 }
 
 .lightbox-nav.next {
   right: 0;
+  justify-content: flex-end;
+  padding-right: 1.5rem;
 }
 
 .lightbox-close {
