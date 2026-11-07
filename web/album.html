@@ -4,19 +4,33 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>img11.jpg</title>
+  <link rel="icon" type="image/png" href="./favicon.png" />
   <link rel="stylesheet" href="./css/style.css" />
 </head>
-<body>
+<body class="page-album">
   <header>
-    <a class="back-link" href="./index.html" aria-label="Back to folders">&larr;</a>
-    <h1 id="album-title">Album</h1>
-    <p id="album-date" class="label album-date"></p>
+    <div class="header-inner">
+      <a class="back-link" href="./index.html" aria-label="Back to folders">&larr;</a>
+      <h1 id="album-title">Album</h1>
+      <p id="album-date" class="label album-date"></p>
+    </div>
   </header>
   <main>
     <div id="photos" class="album-grid">
       <p class="status">Loading photos&hellip;</p>
     </div>
   </main>
+  <footer class="site-footer">
+    <span class="footer-text">made for viewing on desktop</span>
+    <span class="footer-text footer-sep">|</span>
+    <a class="footer-insta" href="https://www.instagram.com/img11.jpg/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"></circle>
+      </svg>
+    </a>
+  </footer>
 
   <div id="lightbox" class="lightbox-overlay" role="dialog" aria-modal="true">
     <button class="lightbox-close" aria-label="Close">&times;</button>

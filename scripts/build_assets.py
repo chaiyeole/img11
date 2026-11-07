@@ -9,6 +9,7 @@ revisit with incremental/mtime-based skipping only if that stops being fast.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import re
 import shutil
@@ -35,6 +36,12 @@ def slugify(name: str) -> str:
     return slug or "untitled"
 
 
+def natural_sort_key(name: str) -> list:
+    """Split a filename into text/number chunks so "2.jpg" sorts before
+    "10.jpg" -- a plain string sort would otherwise put "10" before "2"."""
+    return [int(chunk) if chunk.isdigit() else chunk.lower() for chunk in re.split(r"(\d+)", name)]
+
+
 def unique_slug(base: str, taken: set[str]) -> str:
     if base not in taken:
         taken.add(base)
@@ -45,6 +52,102 @@ def unique_slug(base: str, taken: set[str]) -> str:
     candidate = f"{base}-{i}"
     taken.add(candidate)
     return candidate
+
+
+ALBUM_CSV_COLUMN_ALIASES = {
+    "order": {"srno", "sno", "order", "slno", "serialno"},
+    "folder": {"foldername", "folder", "album", "albumname", "name"},
+    "dateLabel": {"monthyear", "month", "date", "monthyr"},
+    "description": {"description", "desc", "notes"},
+}
+
+
+def _normalize(text: str) -> str:
+    """Lowercase and strip everything but letters/digits, for forgiving matching.
+
+    Used both for CSV column headers (so "Sr. No." matches "Sr No") and for
+    matching a CSV row's Folder Name against an actual content/ folder name
+    when they differ only by spaces, underscores, hyphens, or casing
+    (e.g. "NGP_1" / "NGP 1" / "ngp-1" all normalize the same).
+    """
+    return re.sub(r"[^a-z0-9]", "", (text or "").strip().lower())
+
+
+def load_album_overrides(csv_path: Path) -> dict[str, dict]:
+    """Read content/albums.csv for manual order / date-label / description overrides.
+
+    Column headers are matched case-insensitively, ignoring spacing/punctuation
+    (e.g. "Sr. No." and "Sr No" both match), so the user doesn't need to get the
+    exact header text right. Returns {folder name: {"order", "dateLabel",
+    "description"}}. A missing file, unreadable row, or unmatched column is
+    warned about, never fatal -- albums just fall back to auto-detected date
+    and no description, same as before this feature existed.
+    """
+    if not csv_path.exists():
+        return {}
+
+    with csv_path.open(newline="", encoding="utf-8-sig") as f:
+        reader = csv.reader(f)
+        try:
+            header = next(reader)
+        except StopIteration:
+            return {}
+
+        field_for_col: dict[int, str] = {}
+        for i, h in enumerate(header):
+            key = _normalize(h)
+            for field, aliases in ALBUM_CSV_COLUMN_ALIASES.items():
+                if key in aliases:
+                    field_for_col[i] = field
+                    break
+
+        overrides: dict[str, dict] = {}
+        for row in reader:
+            if not any(cell.strip() for cell in row):
+                continue
+            values: dict[str, str] = {}
+            for i, cell in enumerate(row):
+                field = field_for_col.get(i)
+                if field:
+                    values[field] = cell.strip()
+
+            folder = values.get("folder")
+            if not folder:
+                continue
+
+            order = None
+            order_raw = values.get("order")
+            if order_raw:
+                try:
+                    order = int(order_raw)
+                except ValueError:
+                    print(
+                        f"warning: albums.csv row for '{folder}' has non-numeric Sr No '{order_raw}', ignoring order",
+                        file=sys.stderr,
+                    )
+
+            overrides[folder] = {
+                "order": order,
+                "dateLabel": values.get("dateLabel") or None,
+                "description": values.get("description") or None,
+            }
+
+        return overrides
+
+
+def match_override(album_name: str, overrides: dict[str, dict]) -> tuple[str, dict] | None:
+    """Find album_name's row in albums.csv: exact match first, then a
+    normalized match (ignoring case/spaces/underscores/hyphens/symbols) so
+    e.g. "NGP_1" in the CSV still matches a "NGP 1" folder. Returns the
+    matched CSV folder-name key alongside its override, so the caller can
+    track which CSV rows were actually used."""
+    if album_name in overrides:
+        return album_name, overrides[album_name]
+    target = _normalize(album_name)
+    for folder_key, val in overrides.items():
+        if _normalize(folder_key) == target:
+            return folder_key, val
+    return None
 
 
 def get_capture_date(path: Path) -> datetime | None:
@@ -153,12 +256,15 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
     thumbs_dir = dist_dir / "thumbs"
     full_dir = dist_dir / "full"
 
+    album_overrides = load_album_overrides(content_dir / "albums.csv")
+    matched_csv_folders: set[str] = set()
+
     albums = []
     taken_album_slugs: set[str] = set()
 
     album_dirs = sorted(
         (p for p in content_dir.iterdir() if p.is_dir() and not p.name.startswith(".")),
-        key=lambda p: p.name.lower(),
+        key=lambda p: natural_sort_key(p.name),
     )
 
     for album_path in album_dirs:
@@ -167,7 +273,7 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
 
         photo_paths = sorted(
             (p for p in album_path.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS),
-            key=lambda p: p.name.lower(),
+            key=lambda p: natural_sort_key(p.name),
         )
 
         photos = []
@@ -219,18 +325,44 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
 
         album_date = min(capture_dates) if capture_dates else datetime.fromtimestamp(album_path.stat().st_mtime)
 
+        match = match_override(album_name, album_overrides)
+        override = None
+        if match is not None:
+            matched_key, override = match
+            matched_csv_folders.add(matched_key)
+        else:
+            print(
+                f"note: album '{album_name}' is not listed in albums.csv -- showing at the end, ordered by date",
+                file=sys.stderr,
+            )
+
         albums.append(
             {
                 "name": album_name,
                 "slug": album_slug,
                 "date": album_date.strftime("%Y-%m-%d"),
+                "order": override["order"] if override else None,
+                "dateLabel": override["dateLabel"] if override else None,
+                "description": override["description"] if override else None,
                 "photoCount": len(photos),
                 "photos": photos,
             }
         )
         print(f"album '{album_name}' ({album_slug}): {len(photos)} photo(s), date {album_date:%Y-%m-%d}")
 
-    albums.sort(key=lambda a: a["date"], reverse=True)
+    unmatched_csv_rows = set(album_overrides) - matched_csv_folders
+    for folder_key in sorted(unmatched_csv_rows):
+        print(
+            f"note: albums.csv lists '{folder_key}' but no folder in content/ matches it "
+            "(even ignoring case/spaces/underscores/symbols) -- check for a typo or renamed folder",
+            file=sys.stderr,
+        )
+
+    ordered = [a for a in albums if a["order"] is not None]
+    unordered = [a for a in albums if a["order"] is None]
+    ordered.sort(key=lambda a: a["order"])
+    unordered.sort(key=lambda a: a["date"], reverse=True)
+    albums = ordered + unordered
 
     manifest = {
         "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),

@@ -28,10 +28,11 @@ function renderHome(manifest) {
     const name = document.createElement("span");
     name.className = "index-name";
     name.textContent = album.name;
+    if (album.description) name.title = album.description;
 
     const date = document.createElement("span");
     date.className = "label index-date";
-    date.textContent = formatDate(album.date);
+    date.textContent = album.dateLabel || formatDate(album.date);
 
     a.appendChild(name);
     a.appendChild(date);
