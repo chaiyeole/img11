@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Album &ndash; Photo Portfolio</title>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header>
+    <a class="label" href="./index.html">&larr; Index</a>
+    <h1 id="album-title">Album</h1>
+    <p id="album-date" class="label album-date"></p>
+  </header>
+  <main>
+    <div id="photos" class="album-grid">
+      <p class="status">Loading photos&hellip;</p>
+    </div>
+  </main>
+
+  <div id="lightbox" class="lightbox-overlay" role="dialog" aria-modal="true">
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+    <button class="lightbox-nav prev" aria-label="Previous">&#8249;</button>
+    <img id="lightbox-img" alt="" />
+    <button class="lightbox-nav next" aria-label="Next">&#8250;</button>
+    <p id="lightbox-caption" class="label lightbox-caption"></p>
+  </div>
+
+  <script src="./js/lightbox.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+</html>
