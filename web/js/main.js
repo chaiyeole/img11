@@ -58,6 +58,11 @@ function renderAlbum(manifest) {
     return;
   }
 
+  (window.dataLayer = window.dataLayer || []).push({
+    event: "album_view",
+    album_name: album.name,
+  });
+
   document.title = `img11.jpg - ${album.name}`;
   const titleEl = document.getElementById("album-title");
   if (titleEl) titleEl.textContent = album.name;
