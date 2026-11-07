@@ -12,13 +12,15 @@ import argparse
 import json
 import re
 import shutil
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 from PIL import Image, ImageOps
 
-IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+HEIC_EXTENSIONS = {".heic", ".heif"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"} | HEIC_EXTENSIONS
 THUMB_MAX_EDGE = 800
 THUMB_QUALITY = 75
 FULL_MAX_EDGE = 2200
@@ -57,6 +59,36 @@ def get_capture_date(path: Path) -> datetime | None:
     except Exception:  # noqa: BLE001 - a missing/malformed date just means fall back
         pass
     return None
+
+
+def convert_heic_in_place(path: Path) -> Path | None:
+    """Convert a HEIC/HEIF source photo to JPEG in place, once, via heif-convert.
+
+    heif-convert embeds the source's EXIF (DateTimeOriginal, Orientation) into
+    the output JPEG by default, so the album-date feature and exif_transpose
+    keep working unchanged. Deletes the original .heic/.heif on success, so
+    content/ settles into a single format and later builds never reconvert it.
+    Returns the new .jpg path, or None if conversion failed (caller skips the
+    photo with a warning rather than failing the whole build).
+    """
+    jpg_path = path.with_suffix(".jpg")
+    if jpg_path.exists():
+        print(f"warning: {jpg_path} already exists, skipping HEIC conversion of {path}", file=sys.stderr)
+        return None
+    try:
+        subprocess.run(
+            ["heif-convert", str(path), str(jpg_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        detail = exc.stderr if isinstance(exc, subprocess.CalledProcessError) else str(exc)
+        print(f"warning: failed to convert HEIC {path}: {detail}", file=sys.stderr)
+        jpg_path.unlink(missing_ok=True)
+        return None
+    path.unlink()
+    return jpg_path
 
 
 def strip_gps_in_place(path: Path) -> None:
@@ -143,6 +175,12 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
         capture_dates: list[datetime] = []
 
         for photo_path in photo_paths:
+            if photo_path.suffix.lower() in HEIC_EXTENSIONS:
+                converted = convert_heic_in_place(photo_path)
+                if converted is None:
+                    continue
+                photo_path = converted
+
             strip_gps_in_place(photo_path)
 
             try:
