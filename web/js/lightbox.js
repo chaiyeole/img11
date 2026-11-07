@@ -63,6 +63,15 @@ const Lightbox = (() => {
     imgEl.alt = photo.slug;
     if (captionEl) captionEl.textContent = `${albumName} — ${index + 1} / ${photos.length}`;
     prefetchNeighbors();
+    trackImageView(photo);
+  }
+
+  function trackImageView(photo) {
+    (window.dataLayer = window.dataLayer || []).push({
+      event: "image_view",
+      album_name: albumName,
+      photo_slug: photo.slug,
+    });
   }
 
   function prefetchNeighbors() {
