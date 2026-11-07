@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -24,8 +25,10 @@ HEIC_EXTENSIONS = {".heic", ".heif"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"} | HEIC_EXTENSIONS
 THUMB_MAX_EDGE = 800
 THUMB_QUALITY = 75
+THUMB_AVIF_QUALITY = 60
 FULL_MAX_EDGE = 2200
 FULL_QUALITY = 85
+FULL_AVIF_QUALITY = 70
 WEBP_METHOD = 6
 
 
@@ -223,12 +226,48 @@ def load_image(path: Path) -> Image.Image:
     return img
 
 
-def save_resized(img: Image.Image, out_path: Path, max_edge: int, quality: int) -> tuple[int, int]:
+def encode_avif(img: Image.Image, out_path: Path, quality: int) -> bool:
+    """Encode an already-resized image to AVIF via the `avifenc` CLI.
+
+    Pillow has no AVIF encoder on this system, so this mirrors the HEIC
+    (heif-convert) pattern: shell out to a CLI tool rather than a Python lib.
+    Explicitly uses 4:2:0 chroma subsampling -- avifenc's "auto" default is
+    4:4:4 for non-JPEG input, which bloats file size with no visual benefit
+    for photographic content (verified: 4:4:4 produced AVIF files *larger*
+    than the existing WebP; 4:2:0 at these quality levels is smaller, with
+    no visible difference in side-by-side crops). Returns False (and leaves
+    no file behind) if avifenc is missing or fails, so callers degrade to
+    WebP-only rather than failing the whole build.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+    try:
+        img.save(tmp_path, "PNG")
+        subprocess.run(
+            ["avifenc", "-q", str(quality), "-y", "420", "-s", "6", str(tmp_path), str(out_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        detail = exc.stderr if isinstance(exc, subprocess.CalledProcessError) else str(exc)
+        print(f"warning: failed to encode AVIF for {out_path}: {detail}", file=sys.stderr)
+        out_path.unlink(missing_ok=True)
+        return False
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+
+def save_resized(
+    img: Image.Image, out_path: Path, max_edge: int, quality: int, avif_quality: int
+) -> tuple[int, int, bool]:
     resized = img.copy()
     resized.thumbnail((max_edge, max_edge), Image.Resampling.LANCZOS)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     resized.save(out_path, "WEBP", quality=quality, method=WEBP_METHOD)
-    return resized.width, resized.height
+    avif_ok = encode_avif(resized, out_path.with_suffix(".avif"), avif_quality)
+    return resized.width, resized.height, avif_ok
 
 
 def copy_web_files(web_dir: Path, dist_dir: Path) -> None:
@@ -304,14 +343,20 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
             thumb_rel = f"thumbs/{album_slug}/{photo_slug}.webp"
             full_rel = f"full/{album_slug}/{photo_slug}.webp"
 
-            thumb_w, thumb_h = save_resized(img, dist_dir / thumb_rel, THUMB_MAX_EDGE, THUMB_QUALITY)
-            full_w, full_h = save_resized(img, dist_dir / full_rel, FULL_MAX_EDGE, FULL_QUALITY)
+            thumb_w, thumb_h, thumb_avif_ok = save_resized(
+                img, dist_dir / thumb_rel, THUMB_MAX_EDGE, THUMB_QUALITY, THUMB_AVIF_QUALITY
+            )
+            full_w, full_h, full_avif_ok = save_resized(
+                img, dist_dir / full_rel, FULL_MAX_EDGE, FULL_QUALITY, FULL_AVIF_QUALITY
+            )
 
             photos.append(
                 {
                     "slug": photo_slug,
                     "thumb": thumb_rel,
+                    "thumbAvif": thumb_rel[: -len(".webp")] + ".avif" if thumb_avif_ok else None,
                     "full": full_rel,
+                    "fullAvif": full_rel[: -len(".webp")] + ".avif" if full_avif_ok else None,
                     "width": full_w,
                     "height": full_h,
                     "thumbWidth": thumb_w,

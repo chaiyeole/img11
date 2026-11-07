@@ -5,6 +5,7 @@ const Lightbox = (() => {
   let albumName = "";
   let touchStartX = 0;
   let touchStartY = 0;
+  let prefetched = [];
 
   function init() {
     overlayEl = document.getElementById("lightbox");
@@ -61,6 +62,18 @@ const Lightbox = (() => {
     imgEl.src = photo.full;
     imgEl.alt = photo.slug;
     if (captionEl) captionEl.textContent = `${albumName} — ${index + 1} / ${photos.length}`;
+    prefetchNeighbors();
+  }
+
+  function prefetchNeighbors() {
+    if (photos.length < 2) return;
+    const nextIdx = (index + 1) % photos.length;
+    const prevIdx = (index - 1 + photos.length) % photos.length;
+    prefetched = [nextIdx, prevIdx].map((i) => {
+      const img = new Image();
+      img.src = photos[i].full;
+      return img;
+    });
   }
 
   function open(photoList, startIndex, name) {

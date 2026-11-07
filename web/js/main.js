@@ -9,6 +9,11 @@ function formatDate(isoDate) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "long" });
 }
 
+function pickUrl(webpPath, avifPath) {
+  const path = window.AVIF_OK && avifPath ? avifPath : webpPath;
+  return `./${path}`;
+}
+
 function renderHome(manifest) {
   const container = document.getElementById("albums");
   if (!container) return;
@@ -66,7 +71,7 @@ function renderAlbum(manifest) {
     btn.setAttribute("aria-label", `Open photo ${i + 1}`);
 
     const img = document.createElement("img");
-    img.src = `./${photo.thumb}`;
+    img.src = pickUrl(photo.thumb, photo.thumbAvif);
     img.loading = "lazy";
     img.width = photo.thumbWidth;
     img.height = photo.thumbHeight;
@@ -74,7 +79,10 @@ function renderAlbum(manifest) {
 
     btn.appendChild(img);
     btn.addEventListener("click", () => {
-      const photosForLightbox = album.photos.map((p) => ({ slug: p.slug, full: `./${p.full}` }));
+      const photosForLightbox = album.photos.map((p) => ({
+        slug: p.slug,
+        full: pickUrl(p.full, p.fullAvif),
+      }));
       Lightbox.open(photosForLightbox, i, album.name);
     });
 
@@ -84,7 +92,8 @@ function renderAlbum(manifest) {
 
 (async function main() {
   try {
-    const manifest = await fetchManifest();
+    const [avifOk, manifest] = await Promise.all([AvifSupport.check(), fetchManifest()]);
+    window.AVIF_OK = avifOk;
     if (document.getElementById("albums")) {
       renderHome(manifest);
     } else if (document.getElementById("photos")) {
