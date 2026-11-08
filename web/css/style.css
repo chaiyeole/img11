@@ -126,6 +126,15 @@ header a.label:hover {
   color: var(--fg);
 }
 
+.view-sep {
+  margin: 0 0.5rem;
+  opacity: 0.5;
+}
+
+header a.view-link.active {
+  color: var(--fg);
+}
+
 .back-link {
   display: inline-block;
   font-size: 1.5rem;
@@ -307,15 +316,187 @@ main {
   opacity: 1;
 }
 
+/* Caption: bottom-left. Info panel: bottom-right. With info on, the photo is
+   narrowed so both sit in empty side space instead of on top of the image. */
 .lightbox-caption {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 2.5rem 1rem 1.25rem;
-  text-align: center;
-  color: var(--muted);
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+  left: 1.5rem;
+  bottom: 1.25rem;
+  max-width: 16rem;
+  text-align: left;
   pointer-events: none;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+}
+
+.lightbox-caption p {
+  margin: 0;
+}
+
+.lightbox-title {
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  color: var(--fg);
+}
+
+.lightbox-caption .label {
+  margin-top: 0.35rem;
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+/* Info on: reserve one strip on the right for the panel and centre the photo
+   in the rest, so landscape photos stay large (reaching the left edge, under
+   the caption) instead of shrinking between two empty gutters. */
+.lightbox-overlay.info-on {
+  padding-right: 18rem;
+}
+
+.lightbox-overlay.info-on img {
+  max-width: calc(100vw - 18rem);
+}
+
+.lightbox-overlay.info-on .lightbox-nav {
+  width: 5rem;
+}
+
+.lightbox-overlay.info-on .lightbox-nav.next {
+  right: 18rem;
+}
+
+.lightbox-info {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.25rem;
+  width: 16rem;
+  max-height: calc(100vh - 5rem);
+  margin: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  z-index: 2;
+}
+
+.lightbox-info::-webkit-scrollbar {
+  display: none;
+}
+
+.info-row {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.info-row:first-child {
+  border-top: 0;
+}
+
+.info-row dt {
+  margin-bottom: 0.2rem;
+  font-size: 0.65rem;
+}
+
+.info-row dd {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--fg);
+}
+
+.info-row .info-sub {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.info-row .info-hint {
+  margin-top: 0.2rem;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+.histogram svg {
+  display: block;
+  width: 100%;
+  height: 36px;
+}
+
+.histogram path {
+  fill: var(--muted);
+  opacity: 0.55;
+}
+
+/* Small or portrait screens have no side gutters: the panel becomes a sheet
+   at the bottom, hints show on tap, and the caption moves to the top. */
+@media (max-width: 760px) {
+  .lightbox-overlay.info-on {
+    padding-right: 0;
+  }
+
+  .lightbox-overlay.info-on img {
+    max-width: 100vw;
+  }
+
+  .lightbox-overlay.info-on .lightbox-nav {
+    width: 15%;
+  }
+
+  .lightbox-overlay.info-on .lightbox-nav.next {
+    right: 0;
+  }
+
+  .lightbox-info {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 55vh;
+    padding: 2.5rem 1rem 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 70%, transparent);
+  }
+
+  .info-row:first-child {
+    border-top: 1px solid var(--line);
+  }
+
+  .info-histogram {
+    grid-column: 1 / -1;
+  }
+
+  .info-row .info-hint {
+    display: none;
+  }
+
+  .info-row.show-hint .info-hint {
+    display: block;
+  }
+
+  .info-on .lightbox-caption {
+    top: 1.1rem;
+    bottom: auto;
+    left: 4rem;
+  }
+}
+
+.lightbox-info-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  font: italic 500 0.85rem/1 Georgia, "Times New Roman", serif;
+  cursor: pointer;
+  opacity: 0.5;
+  z-index: 2;
+}
+
+.lightbox-info-toggle:hover,
+.lightbox-info-toggle[aria-pressed="true"] {
+  opacity: 1;
 }

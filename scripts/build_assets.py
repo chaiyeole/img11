@@ -14,19 +14,22 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import io
 import json
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageStat
 
 HEIC_EXTENSIONS = {".heic", ".heif"}
-IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"} | HEIC_EXTENSIONS
+RAW_EXTENSIONS = {".raf"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"} | HEIC_EXTENSIONS | RAW_EXTENSIONS
 THUMB_MAX_EDGE = 800
 THUMB_QUALITY = 75
 THUMB_AVIF_QUALITY = 60
@@ -161,9 +164,150 @@ def match_override(album_name: str, overrides: dict[str, dict]) -> tuple[str, di
     return None
 
 
+BW_TAG = "b&w"
+
+# Mean HSV saturation (0-1) below which a photo counts as black & white.
+# Measured on the current library: true grayscale exports sit at <= 0.026,
+# the least-saturated colour photo at 0.057. Toned/tinted B&W (warm-tinted
+# exports) overlaps colour photos on every cheap metric tried, so those are
+# tagged by hand in tags.csv instead of loosening this.
+MONO_SATURATION_MAX = 0.03
+
+TAGS_CSV_COLUMN_ALIASES = {
+    "folder": {"foldername", "folder", "album", "albumname"},
+    "file": {"file", "filename", "photo", "image", "name"},
+    "tags": {"tags", "tag", "keywords"},
+}
+
+# Spellings that should collapse into one tag, so the Tags index doesn't
+# grow near-duplicates ("cloud" vs "clouds").
+TAG_ALIASES = {
+    "bw": BW_TAG,
+    "b/w": BW_TAG,
+    "black and white": BW_TAG,
+    "black & white": BW_TAG,
+    "monochrome": BW_TAG,
+    "mono": BW_TAG,
+    "cloud": "clouds",
+    "person": "people",
+    "tree": "trees",
+    "mountain": "mountains",
+    "hills": "mountains",
+    "animal": "animals",
+    "car": "cars",
+    "reflection": "reflections",
+    "light": "lights",
+    "sunrise": "sunset",
+    "cats": "cat",
+}
+
+
+def is_monochrome(img: Image.Image) -> bool:
+    small = img.convert("RGB")
+    small.thumbnail((64, 64))
+    saturation = ImageStat.Stat(small.convert("HSV")).mean[1] / 255
+    return saturation < MONO_SATURATION_MAX
+
+
+def normalize_tag(raw: str) -> str:
+    tag = re.sub(r"\s+", " ", raw.strip().lower())
+    return TAG_ALIASES.get(tag, tag)
+
+
+def tag_slug(tag: str) -> str:
+    # slugify("b&w") would give "b-w"; "bw" reads better in a URL.
+    return "bw" if tag == BW_TAG else slugify(tag)
+
+
+def load_photo_tags(csv_path: Path) -> dict[tuple[str, str], dict]:
+    """Read content/tags.csv: one row per photo, tags separated by ';'.
+
+    Returns {(normalized folder, normalized file stem): {"add": [...],
+    "remove": set(...), "label": "Folder/File"}}. A tag written with a
+    leading '-' (e.g. "-b&w") removes an auto-detected tag. Like albums.csv,
+    a missing file or bad row is warned about, never fatal.
+    """
+    if not csv_path.exists():
+        return {}
+
+    with csv_path.open(newline="", encoding="utf-8-sig") as f:
+        reader = csv.reader(f)
+        try:
+            header = next(reader)
+        except StopIteration:
+            return {}
+
+        field_for_col: dict[int, str] = {}
+        for i, h in enumerate(header):
+            key = _normalize(h)
+            for field, aliases in TAGS_CSV_COLUMN_ALIASES.items():
+                if key in aliases:
+                    field_for_col[i] = field
+                    break
+
+        if set(field_for_col.values()) != set(TAGS_CSV_COLUMN_ALIASES):
+            print(
+                f"warning: {csv_path} needs Folder Name, File and Tags columns -- ignoring it",
+                file=sys.stderr,
+            )
+            return {}
+
+        result: dict[tuple[str, str], dict] = {}
+        for row in reader:
+            if not any(cell.strip() for cell in row):
+                continue
+            values = {field_for_col[i]: cell.strip() for i, cell in enumerate(row) if i in field_for_col}
+            folder, file = values.get("folder"), values.get("file")
+            if not folder or not file:
+                continue
+
+            add: list[str] = []
+            remove: set[str] = set()
+            for raw in values.get("tags", "").split(";"):
+                if not raw.strip():
+                    continue
+                if raw.strip().startswith("-"):
+                    remove.add(normalize_tag(raw.strip()[1:]))
+                else:
+                    tag = normalize_tag(raw)
+                    if tag not in add:
+                        add.append(tag)
+
+            key = (_normalize(folder), _normalize(Path(file).stem))
+            result[key] = {"add": add, "remove": remove, "label": f"{folder}/{file}"}
+        return result
+
+
+def raf_embedded_jpeg(path: Path) -> bytes:
+    """The camera-rendered JPEG inside a Fujifilm RAF file.
+
+    The RAF header stores its offset and length as big-endian uint32s at bytes
+    84 and 88. That JPEG already has the film simulation applied and carries
+    the full EXIF + Fujifilm MakerNote, so the build uses it in place of
+    decoding RAW data -- no extra dependency, and the .raf is never modified.
+    """
+    with path.open("rb") as f:
+        header = f.read(92)
+        if not header.startswith(b"FUJIFILMCCD-RAW"):
+            raise ValueError(f"{path} is not a Fujifilm RAF file")
+        offset, length = struct.unpack(">II", header[84:92])
+        f.seek(offset)
+        data = f.read(length)
+    if not data.startswith(b"\xff\xd8"):
+        raise ValueError(f"{path}: no embedded JPEG found at the expected offset")
+    return data
+
+
+def open_source(path: Path) -> Image.Image:
+    """Image.open, except a .raf opens its embedded camera JPEG."""
+    if path.suffix.lower() in RAW_EXTENSIONS:
+        return Image.open(io.BytesIO(raf_embedded_jpeg(path)))
+    return Image.open(path)
+
+
 def get_capture_date(path: Path) -> datetime | None:
     try:
-        exif = Image.open(path).getexif()
+        exif = open_source(path).getexif()
         if not exif:
             return None
         exif_ifd = exif.get_ifd(0x8769)
@@ -173,6 +317,163 @@ def get_capture_date(path: Path) -> datetime | None:
     except Exception:  # noqa: BLE001 - a missing/malformed date just means fall back
         pass
     return None
+
+
+def _fmt_number(value: float) -> str:
+    return f"{value:.1f}".rstrip("0").rstrip(".")
+
+
+# Fujifilm MakerNote value tables, from exiftool's FujiFilm tag reference.
+# Codes not listed here are skipped, never guessed.
+FUJI_FILM_MODES = {
+    0x000: "Provia", 0x100: "Studio Portrait", 0x110: "Studio Portrait Enhanced Saturation",
+    0x120: "Astia", 0x130: "Studio Portrait Increased Sharpness", 0x200: "Velvia",
+    0x300: "Studio Portrait Ex", 0x400: "Velvia", 0x500: "Pro Neg. Std", 0x501: "Pro Neg. Hi",
+    0x600: "Classic Chrome", 0x700: "Eterna", 0x800: "Classic Negative", 0x900: "Eterna Bleach Bypass",
+    0xA00: "Nostalgic Neg.", 0xB00: "Reala Ace",
+}
+# Monochrome simulations live in the Saturation tag, not FilmMode.
+FUJI_MONO_MODES = {
+    0x300: "Monochrome", 0x301: "Monochrome + R", 0x302: "Monochrome + Ye", 0x303: "Monochrome + G",
+    0x310: "Sepia", 0x500: "Acros", 0x501: "Acros + R", 0x502: "Acros + Ye", 0x503: "Acros + G",
+}
+FUJI_GRAIN = {16: "Grain weak, small", 32: "Grain weak", 48: "Grain strong, small", 64: "Grain strong"}
+FUJI_STRENGTH = {32: "weak", 64: "strong"}
+FUJI_DR = {0x100: "DR100", 0x200: "DR200", 0x201: "DR400"}
+FUJI_WB = {
+    0x0: "Auto WB", 0x1: "Auto WB (white)", 0x2: "Auto WB (ambience)", 0x100: "Daylight WB",
+    0x200: "Cloudy WB", 0x400: "Incandescent WB", 0x600: "Underwater WB", 0xFF0: "Kelvin WB",
+}
+FUJI_TONE_STEP = 16  # ShadowTone/HighlightTone: -16 per +1 step (e.g. -32 -> +2)
+
+_TIFF_SIZES = {1: 1, 2: 1, 3: 2, 4: 4, 7: 1, 8: 2, 9: 4}
+
+
+def read_fuji_makernote(note: bytes) -> dict[int, int]:
+    """Parse a Fujifilm MakerNote: b"FUJIFILM", a little-endian uint32 offset to
+    an IFD, then standard 12-byte IFD entries. Offsets are relative to the start
+    of the note, so the note is self-contained. Returns {tag: value} for the
+    single-value integer tags (all the recipe settings are)."""
+    if not note.startswith(b"FUJIFILM") or len(note) < 14:
+        return {}
+    (ifd_offset,) = struct.unpack_from("<I", note, 8)
+    (count,) = struct.unpack_from("<H", note, ifd_offset)
+    values: dict[int, int] = {}
+    for i in range(count):
+        entry = ifd_offset + 2 + i * 12
+        if entry + 12 > len(note):
+            break
+        tag, typ, n = struct.unpack_from("<HHI", note, entry)
+        if n != 1 or typ not in _TIFF_SIZES or _TIFF_SIZES[typ] > 4:
+            continue
+        fmt = {1: "<B", 3: "<H", 4: "<I", 7: "<B", 8: "<h", 9: "<i"}.get(typ)
+        if fmt:
+            (values[tag],) = struct.unpack_from(fmt, note, entry + 8)
+    return values
+
+
+def fuji_recipe(exif_ifd) -> tuple[str | None, str | None]:
+    """(film simulation, short recipe) from the MakerNote, or (None, None)."""
+    note = exif_ifd.get(0x927C)
+    if not isinstance(note, (bytes, bytearray)):
+        return None, None
+    try:
+        tags = read_fuji_makernote(bytes(note))
+    except struct.error:
+        return None, None
+    if not tags:
+        return None, None
+
+    film = FUJI_MONO_MODES.get(tags.get(0x1003, -1)) or FUJI_FILM_MODES.get(tags.get(0x1401, -1))
+
+    def signed32(v: int) -> int:
+        return v - (1 << 32) if v >= 1 << 31 else v
+
+    parts = []
+    if (grain := FUJI_GRAIN.get(signed32(tags.get(0x1047, 0)))):
+        parts.append(grain)
+    if (cc := FUJI_STRENGTH.get(signed32(tags.get(0x1048, 0)))):
+        parts.append(f"Color chrome {cc}")
+    if (ccb := FUJI_STRENGTH.get(signed32(tags.get(0x104E, 0)))):
+        parts.append(f"Chrome blue {ccb}")
+    for tag, name in ((0x1041, "Highlights"), (0x1040, "Shadows")):
+        raw = tags.get(tag)
+        if raw is not None and signed32(raw) % FUJI_TONE_STEP == 0 and signed32(raw) != 0:
+            step = -signed32(raw) // FUJI_TONE_STEP
+            parts.append(f"{name} {step:+d}")
+    if (dr := FUJI_DR.get(tags.get(0x1402, -1))):
+        parts.append(dr)
+    if (wb := FUJI_WB.get(tags.get(0x1002, -1))):
+        parts.append(wb)
+    return film, (" · ".join(parts) or None)
+
+
+def get_photo_meta(path: Path) -> dict | None:
+    """Camera, settings and capture date from a source photo's EXIF, preformatted
+    for the lightbox info panel. The web images are re-encoded without EXIF, so
+    this is the only place it survives. Missing fields are simply omitted;
+    returns None when there's nothing at all (e.g. exported/edited copies)."""
+    try:
+        exif = open_source(path).getexif()
+    except Exception:  # noqa: BLE001 - metadata is optional
+        return None
+    if not exif:
+        return None
+    ifd = exif.get_ifd(0x8769)
+    meta: dict[str, str] = {}
+
+    make = str(exif.get(271) or "").strip()
+    model = str(exif.get(272) or "").strip()
+    if model:
+        # "Canon" + "Canon EOS 1500D" -> "Canon EOS 1500D"; "FUJIFILM" + "X-S20" -> "Fujifilm X-S20"
+        if make and not model.lower().startswith(make.lower().split()[0]):
+            model = f"{make.title() if make.isupper() else make} {model}"
+        meta["camera"] = model
+
+    # Real focal length, as printed on the lens. Phones report a tiny real
+    # value (~6mm) that means little to a viewer, so for those (< 10mm) use
+    # the 35mm-equivalent when the camera records one.
+    focal = ifd.get(0x920A)
+    if (not focal or float(focal) < 10) and ifd.get(0xA405):
+        focal = ifd.get(0xA405)
+    if focal:
+        meta["focal"] = f"{_fmt_number(float(focal))}mm"
+
+    f_number = ifd.get(0x829D)
+    if f_number:
+        meta["aperture"] = f"f/{_fmt_number(float(f_number))}"
+
+    exposure = ifd.get(0x829A)
+    if exposure:
+        exposure = float(exposure)
+        meta["shutter"] = f"1/{round(1 / exposure)}s" if 0 < exposure < 1 else f"{_fmt_number(exposure)}s"
+
+    iso = ifd.get(0x8827)
+    if isinstance(iso, (tuple, list)):
+        iso = iso[0] if iso else None
+    if iso:
+        meta["iso"] = f"ISO {int(iso)}"
+
+    bias = ifd.get(0x9204)
+    if bias is not None:
+        try:
+            bias = float(bias)
+        except (TypeError, ValueError, ZeroDivisionError):
+            bias = 0.0
+        if abs(bias) >= 0.05:
+            meta["ev"] = f"{bias:+.1f} EV".replace(".0 EV", " EV")
+
+    film, recipe = fuji_recipe(ifd)
+    if film:
+        meta["film"] = film
+    if recipe:
+        meta["recipe"] = recipe
+
+    taken = get_capture_date(path)
+    if taken:
+        meta["taken"] = taken.strftime("%Y-%m-%dT%H:%M")
+
+    return meta or None
 
 
 def convert_heic_in_place(path: Path) -> Path | None:
@@ -227,7 +528,7 @@ def strip_gps_in_place(path: Path) -> None:
 
 
 def load_image(path: Path) -> Image.Image:
-    img = Image.open(path)
+    img = open_source(path)
     img = ImageOps.exif_transpose(img)
     if img.mode not in ("RGB", "RGBA"):
         img = img.convert("RGBA" if "A" in img.getbands() else "RGB")
@@ -352,6 +653,9 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | No
 
     album_overrides = load_album_overrides(content_dir / "albums.csv")
     matched_csv_folders: set[str] = set()
+    photo_tags = load_photo_tags(content_dir / "tags.csv")
+    matched_tag_rows: set[tuple[str, str]] = set()
+    tag_counts: dict[str, int] = {}
 
     albums = []
     taken_album_slugs: set[str] = set()
@@ -389,6 +693,30 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | No
                 print(f"warning: skipping unreadable image {photo_path}: {exc}", file=sys.stderr)
                 continue
 
+            if photo_path.suffix.lower() in RAW_EXTENSIONS:
+                if max(img.size) < FULL_MAX_EDGE:
+                    print(
+                        f"warning: {photo_path}'s embedded JPEG is only {img.width}x{img.height} "
+                        f"(full view is {FULL_MAX_EDGE}px) -- export a full-size JPEG if it looks soft",
+                        file=sys.stderr,
+                    )
+                if 0x8825 in open_source(photo_path).getexif():
+                    print(
+                        f"warning: {photo_path} contains GPS location. The website never shows it, "
+                        "but the .raf file itself is readable in the repo -- remove GPS before committing",
+                        file=sys.stderr,
+                    )
+
+            tags = [BW_TAG] if is_monochrome(img) else []
+            tag_key = (_normalize(album_name), _normalize(photo_path.stem))
+            tag_row = photo_tags.get(tag_key)
+            if tag_row is not None:
+                matched_tag_rows.add(tag_key)
+                tags = [t for t in tags if t not in tag_row["remove"]]
+                tags += [t for t in tag_row["add"] if t not in tags and t not in tag_row["remove"]]
+            for tag in tags:
+                tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
             capture_date = get_capture_date(photo_path)
             if capture_date:
                 capture_dates.append(capture_date)
@@ -422,6 +750,8 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | No
                     "height": full_h,
                     "thumbWidth": thumb_w,
                     "thumbHeight": thumb_h,
+                    "tags": tags,
+                    "meta": get_photo_meta(photo_path),
                 }
             )
 
@@ -464,6 +794,19 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | No
             file=sys.stderr,
         )
 
+    for key in sorted(set(photo_tags) - matched_tag_rows):
+        print(
+            f"note: tags.csv lists '{photo_tags[key]['label']}' but no such photo was found in content/",
+            file=sys.stderr,
+        )
+
+    tag_index = [
+        {"name": name, "slug": tag_slug(name), "count": count}
+        for name, count in sorted(tag_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    ]
+    if tag_index:
+        print("tags: " + ", ".join(f"{t['name']} ({t['count']})" for t in tag_index))
+
     ordered = [a for a in albums if a["order"] is not None]
     unordered = [a for a in albums if a["order"] is None]
     ordered.sort(key=lambda a: a["order"])
@@ -473,6 +816,7 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | No
     manifest = {
         "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         "albums": albums,
+        "tags": tag_index,
     }
     (dist_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 

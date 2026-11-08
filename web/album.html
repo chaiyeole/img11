@@ -49,7 +49,12 @@
     <button class="lightbox-nav prev" aria-label="Previous">&#8249;</button>
     <img id="lightbox-img" alt="" />
     <button class="lightbox-nav next" aria-label="Next">&#8250;</button>
-    <p id="lightbox-caption" class="label lightbox-caption"></p>
+    <button class="lightbox-info-toggle" aria-label="Show photo info (i)" aria-pressed="false">i</button>
+    <div class="lightbox-caption">
+      <p id="lightbox-caption" class="lightbox-title"></p>
+      <p id="lightbox-counter" class="label"></p>
+    </div>
+    <dl id="lightbox-info" class="lightbox-info" aria-label="Photo info" hidden></dl>
   </div>
 
   <script src="./js/format.js"></script>
