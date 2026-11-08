@@ -379,6 +379,12 @@ main {
   display: none;
 }
 
+/* The mobile layout sets display: grid, which would otherwise override the
+   hidden attribute and leave the panel on screen after turning info off. */
+.lightbox-info[hidden] {
+  display: none !important;
+}
+
 .info-row {
   padding: 0.6rem 0;
   border-top: 1px solid var(--line);

@@ -23,6 +23,7 @@ const Lightbox = (() => {
   let touchStartX = 0;
   let touchStartY = 0;
   let prefetched = [];
+  let historyEntry = false; // true while our pushed history entry is current
   const histogramCache = new Map();
 
   function init() {
@@ -73,6 +74,14 @@ const Lightbox = (() => {
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
         if (dx < 0) next();
         else prev();
+      }
+    });
+    // Browser back (button, touchpad swipe, mobile gesture) closes the photo
+    // and stays on the album / tag grid instead of leaving the page.
+    window.addEventListener("popstate", () => {
+      if (historyEntry) {
+        historyEntry = false;
+        close();
       }
     });
     document.addEventListener("fullscreenchange", () => {
@@ -257,14 +266,25 @@ const Lightbox = (() => {
     index = startIndex;
     albumName = name || "";
     overlayEl.classList.add("open");
+    if (!historyEntry) {
+      history.pushState({ lightbox: true }, "");
+      historyEntry = true;
+    }
     show();
     enterFullscreen();
   }
 
   function close() {
+    if (!overlayEl.classList.contains("open")) return;
     overlayEl.classList.remove("open");
     imgEl.src = "";
     exitFullscreen();
+    // Closed via ×, Esc, background tap or leaving fullscreen: drop the
+    // history entry we added so a later back doesn't just reopen nothing.
+    if (historyEntry) {
+      historyEntry = false;
+      history.back();
+    }
   }
 
   function prev() {
