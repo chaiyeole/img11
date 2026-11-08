@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """Build thumbs/, full/, and manifest.json for the photo portfolio site.
 
-Full rebuild every run (content/ -> dist/): simplest option that avoids
-stale/orphaned output files when photos are renamed or deleted. Intended
-for personal-scale photo libraries (dozens to low hundreds of photos);
-revisit with incremental/mtime-based skipping only if that stops being fast.
+dist/ itself is always fully rebuilt from content/ -- no orphaned/stale
+output files when photos are renamed or deleted. The expensive step (resize
++ WebP/AVIF encode) is cached separately in --cache-dir, keyed by each
+source photo's content hash, so unchanged photos are copied from cache
+instead of re-encoded. That cache dir is meant to be persisted across CI
+runs (e.g. via actions/cache) -- without it (or on a cold cache), behavior
+and output are identical, just slower.
 """
 from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import re
 import shutil
@@ -30,6 +34,10 @@ FULL_MAX_EDGE = 2200
 FULL_QUALITY = 85
 FULL_AVIF_QUALITY = 70
 WEBP_METHOD = 6
+
+# Bump this if THUMB_*/FULL_*/WEBP_METHOD or the encode logic changes, so old
+# cached outputs (encoded with different settings) don't get reused silently.
+CACHE_VERSION = "v1"
 
 
 def slugify(name: str) -> str:
@@ -259,15 +267,57 @@ def encode_avif(img: Image.Image, out_path: Path, quality: int) -> bool:
         tmp_path.unlink(missing_ok=True)
 
 
+def source_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:20]
+
+
+def cache_tier_paths(cache_dir: Path | None, src_hash: str, tier: str) -> tuple[Path, Path] | None:
+    if cache_dir is None:
+        return None
+    d = cache_dir / CACHE_VERSION / src_hash / tier
+    return d / "img.webp", d / "img.avif"
+
+
 def save_resized(
-    img: Image.Image, out_path: Path, max_edge: int, quality: int, avif_quality: int
-) -> tuple[int, int, bool]:
+    img: Image.Image,
+    out_path: Path,
+    max_edge: int,
+    quality: int,
+    avif_quality: int,
+    cache_dir: Path | None,
+    src_hash: str,
+    tier: str,
+) -> tuple[int, int, bool, bool]:
+    """Resize+encode (WebP always, AVIF best-effort), or reuse a cached copy
+    from an earlier build of the exact same source photo. Returns (width,
+    height, avif_ok, cache_hit)."""
+    cache_paths = cache_tier_paths(cache_dir, src_hash, tier)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if cache_paths is not None:
+        cached_webp, cached_avif = cache_paths
+        if cached_webp.exists():
+            shutil.copy2(cached_webp, out_path)
+            with Image.open(out_path) as cached_img:
+                width, height = cached_img.size
+            avif_ok = cached_avif.exists()
+            if avif_ok:
+                shutil.copy2(cached_avif, out_path.with_suffix(".avif"))
+            return width, height, avif_ok, True
+
     resized = img.copy()
     resized.thumbnail((max_edge, max_edge), Image.Resampling.LANCZOS)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
     resized.save(out_path, "WEBP", quality=quality, method=WEBP_METHOD)
     avif_ok = encode_avif(resized, out_path.with_suffix(".avif"), avif_quality)
-    return resized.width, resized.height, avif_ok
+
+    if cache_paths is not None:
+        cached_webp, cached_avif = cache_paths
+        cached_webp.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(out_path, cached_webp)
+        if avif_ok:
+            shutil.copy2(out_path.with_suffix(".avif"), cached_avif)
+
+    return resized.width, resized.height, avif_ok, False
 
 
 def copy_web_files(web_dir: Path, dist_dir: Path) -> None:
@@ -283,7 +333,7 @@ def copy_web_files(web_dir: Path, dist_dir: Path) -> None:
             shutil.copy2(item, dest)
 
 
-def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
+def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | None) -> None:
     if not content_dir.is_dir():
         print(f"error: content dir not found: {content_dir}", file=sys.stderr)
         sys.exit(1)
@@ -294,6 +344,11 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
 
     thumbs_dir = dist_dir / "thumbs"
     full_dir = dist_dir / "full"
+
+    if cache_dir is not None:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_hits = 0
+    cache_total = 0
 
     album_overrides = load_album_overrides(content_dir / "albums.csv")
     matched_csv_folders: set[str] = set()
@@ -339,16 +394,22 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
                 capture_dates.append(capture_date)
 
             photo_slug = unique_slug(slugify(photo_path.stem), taken_photo_slugs)
+            src_hash = source_hash(photo_path)
 
             thumb_rel = f"thumbs/{album_slug}/{photo_slug}.webp"
             full_rel = f"full/{album_slug}/{photo_slug}.webp"
 
-            thumb_w, thumb_h, thumb_avif_ok = save_resized(
-                img, dist_dir / thumb_rel, THUMB_MAX_EDGE, THUMB_QUALITY, THUMB_AVIF_QUALITY
+            thumb_w, thumb_h, thumb_avif_ok, thumb_hit = save_resized(
+                img, dist_dir / thumb_rel, THUMB_MAX_EDGE, THUMB_QUALITY, THUMB_AVIF_QUALITY, cache_dir, src_hash, "thumb"
             )
-            full_w, full_h, full_avif_ok = save_resized(
-                img, dist_dir / full_rel, FULL_MAX_EDGE, FULL_QUALITY, FULL_AVIF_QUALITY
+            full_w, full_h, full_avif_ok, full_hit = save_resized(
+                img, dist_dir / full_rel, FULL_MAX_EDGE, FULL_QUALITY, FULL_AVIF_QUALITY, cache_dir, src_hash, "full"
             )
+            if thumb_hit:
+                cache_hits += 1
+            if full_hit:
+                cache_hits += 1
+            cache_total += 2
 
             photos.append(
                 {
@@ -416,7 +477,8 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path) -> None:
     (dist_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     total_photos = sum(a["photoCount"] for a in albums)
-    print(f"done: {len(albums)} album(s), {total_photos} photo(s) -> {dist_dir}")
+    cache_note = f", {cache_hits}/{cache_total} outputs reused from cache" if cache_total else ""
+    print(f"done: {len(albums)} album(s), {total_photos} photo(s) -> {dist_dir}{cache_note}")
 
 
 def main() -> None:
@@ -424,8 +486,16 @@ def main() -> None:
     parser.add_argument("--content-dir", default="content", type=Path)
     parser.add_argument("--dist-dir", default="dist", type=Path)
     parser.add_argument("--web-dir", default="web", type=Path)
+    parser.add_argument(
+        "--cache-dir",
+        default=".build_cache",
+        type=Path,
+        help="Persist resize/encode outputs here, keyed by source content hash, so unchanged "
+        "photos are copied instead of re-encoded on the next run. Pass --no-cache to disable.",
+    )
+    parser.add_argument("--no-cache", action="store_true", help="Disable the resize/encode cache entirely.")
     args = parser.parse_args()
-    build(args.content_dir, args.dist_dir, args.web_dir)
+    build(args.content_dir, args.dist_dir, args.web_dir, None if args.no_cache else args.cache_dir)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,15 @@
   box-sizing: border-box;
 }
 
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Chromium Edge */
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -198,7 +207,7 @@ main {
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 440px) {
   .album-grid {
     column-count: 1;
   }
@@ -279,6 +288,12 @@ main {
   right: 0;
   justify-content: flex-end;
   padding-right: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .lightbox-nav {
+    display: none;
+  }
 }
 
 .lightbox-close {

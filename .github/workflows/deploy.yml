@@ -30,6 +30,14 @@ jobs:
           sudo apt-get install -y libheif-examples libavif-bin
           python -m pip install -r scripts/requirements.txt
 
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: .build_cache
+          key: build-cache-${{ github.sha }}
+          restore-keys: |
+            build-cache-
+
       - name: Build site
         run: python scripts/build_assets.py
 
