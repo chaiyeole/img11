@@ -35,12 +35,7 @@ const Lightbox = (() => {
     overlayEl.addEventListener("touchend", (e) => {
       const dx = e.changedTouches[0].clientX - touchStartX;
       const dy = e.changedTouches[0].clientY - touchStartY;
-      if (isMobileViewport()) {
-        if (Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx)) {
-          if (dy < 0) next();
-          else prev();
-        }
-      } else if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
         if (dx < 0) next();
         else prev();
       }
@@ -50,10 +45,6 @@ const Lightbox = (() => {
         close();
       }
     });
-  }
-
-  function isMobileViewport() {
-    return window.innerWidth <= 700;
   }
 
   function enterFullscreen() {
