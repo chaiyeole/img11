@@ -20,30 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libheif-examples libavif-bin
-          python -m pip install -r scripts/requirements.txt
-
-      - name: Restore build cache
-        uses: actions/cache@v4
-        with:
-          path: .build_cache
-          key: build-cache-${{ github.sha }}
-          restore-keys: |
-            build-cache-
-
-      - name: Build site
-        run: python scripts/build_assets.py
-
+      # Photos are encoded on the laptop and served from Cloudflare Pages
+      # (scripts/publish.sh); this only publishes the site and its manifest.
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: web
 
   deploy:
     needs: build

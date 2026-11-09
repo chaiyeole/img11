@@ -4,3 +4,9 @@ dist/
 __pycache__/
 *.pyc
 .DS_Store
+
+# Original photos stay on this laptop (encoded copies are on Cloudflare).
+# The CSVs in content/ are still tracked.
+content/*/
+dist-images/
+.wrangler/

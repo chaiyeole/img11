@@ -1,0 +1,9 @@
+// Cloudflare hosts the photo files (no code, static files only).
+// Deployed by scripts/publish.sh: `wrangler deploy` uploads dist-images/,
+// skipping files Cloudflare already has. The website itself is on GitHub Pages.
+{
+  "name": "img11-photos",
+  "compatibility_date": "2026-11-08",
+  "assets": { "directory": "./dist-images" },
+  "workers_dev": true
+}

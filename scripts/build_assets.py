@@ -33,12 +33,21 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"} | HEIC_EXTENSIONS | RAW_EX
 THUMB_MAX_EDGE = 800
 THUMB_QUALITY = 75
 THUMB_AVIF_QUALITY = 60
-FULL_MAX_EDGE = 2200
-FULL_QUALITY = 85
-FULL_AVIF_QUALITY = 70
+FULL_MAX_EDGE = 2200  # below this, a RAF preview looks soft even on 1080p
 WEBP_METHOD = 6
 
-# Bump this if THUMB_*/FULL_*/WEBP_METHOD or the encode logic changes, so old
+# Full-screen sizes, smallest first. The viewer picks the smallest one that
+# covers the screen it's opened on (see chooseSize in web/js/lightbox.js).
+# "full" (2200px) is the original single size and keeps its folder and cache.
+#   tier      long edge  WebP q  AVIF q   meant for
+FULL_SIZES = [
+    ("phone", 1600, 85, 72),   # phones and tablets
+    ("full", 2200, 85, 70),    # 1080p laptops and monitors
+    ("max", 3840, 92, 82),     # 2K / 1440p, MacBook Retina, 4K: best quality
+]
+FULL_DIRS = {"phone": "full-1600", "full": "full", "max": "full-3840"}
+
+# Bump this if THUMB_*/FULL_SIZES/WEBP_METHOD or the encode logic changes, so old
 # cached outputs (encoded with different settings) don't get reused silently.
 CACHE_VERSION = "v1"
 
@@ -190,7 +199,8 @@ TAG_ALIASES = {
     "mono": BW_TAG,
     "cloud": "clouds",
     "person": "people",
-    "tree": "trees",
+    "tree": "fake plastic trees",
+    "trees": "fake plastic trees",
     "mountain": "mountains",
     "hills": "mountains",
     "animal": "animals",
@@ -621,6 +631,10 @@ def save_resized(
     return resized.width, resized.height, avif_ok, False
 
 
+def avif_path(webp_rel: str) -> str:
+    return webp_rel[: -len(".webp")] + ".avif"
+
+
 def copy_web_files(web_dir: Path, dist_dir: Path) -> None:
     if not web_dir.is_dir():
         print(f"warning: web dir not found: {web_dir}, skipping front-end copy", file=sys.stderr)
@@ -634,7 +648,7 @@ def copy_web_files(web_dir: Path, dist_dir: Path) -> None:
             shutil.copy2(item, dest)
 
 
-def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | None) -> None:
+def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | None, image_base: str = "") -> None:
     if not content_dir.is_dir():
         print(f"error: content dir not found: {content_dir}", file=sys.stderr)
         sys.exit(1)
@@ -724,28 +738,44 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | No
             photo_slug = unique_slug(slugify(photo_path.stem), taken_photo_slugs)
             src_hash = source_hash(photo_path)
 
+            def versioned(rel: str, v: str = src_hash[:8]) -> str:
+                # Image hosts cache files for a year; the ?v= changes when the
+                # photo itself changes, so a replaced photo is never served stale.
+                return f"{rel}?v={v}"
+
             thumb_rel = f"thumbs/{album_slug}/{photo_slug}.webp"
             full_rel = f"full/{album_slug}/{photo_slug}.webp"
 
             thumb_w, thumb_h, thumb_avif_ok, thumb_hit = save_resized(
                 img, dist_dir / thumb_rel, THUMB_MAX_EDGE, THUMB_QUALITY, THUMB_AVIF_QUALITY, cache_dir, src_hash, "thumb"
             )
-            full_w, full_h, full_avif_ok, full_hit = save_resized(
-                img, dist_dir / full_rel, FULL_MAX_EDGE, FULL_QUALITY, FULL_AVIF_QUALITY, cache_dir, src_hash, "full"
-            )
-            if thumb_hit:
-                cache_hits += 1
-            if full_hit:
-                cache_hits += 1
-            cache_total += 2
+            cache_hits += thumb_hit
+            cache_total += 1
+
+            # One file per screen class. A size is skipped when the original
+            # isn't bigger than the previous size (it would be the same image).
+            full_sizes = []
+            prev_edge = 0
+            for tier, edge, webp_q, avif_q in FULL_SIZES:
+                if tier != "full" and max(img.size) <= prev_edge:
+                    continue
+                rel = f"{FULL_DIRS[tier]}/{album_slug}/{photo_slug}.webp"
+                w, h, avif_ok, hit = save_resized(img, dist_dir / rel, edge, webp_q, avif_q, cache_dir, src_hash, tier)
+                cache_hits += hit
+                cache_total += 1
+                full_sizes.append({"edge": max(w, h), "webp": versioned(rel), "avif": versioned(avif_path(rel)) if avif_ok else None})
+                if tier == "full":
+                    full_w, full_h, full_avif_ok = w, h, avif_ok
+                prev_edge = edge
 
             photos.append(
                 {
                     "slug": photo_slug,
-                    "thumb": thumb_rel,
-                    "thumbAvif": thumb_rel[: -len(".webp")] + ".avif" if thumb_avif_ok else None,
-                    "full": full_rel,
-                    "fullAvif": full_rel[: -len(".webp")] + ".avif" if full_avif_ok else None,
+                    "thumb": versioned(thumb_rel),
+                    "thumbAvif": versioned(avif_path(thumb_rel)) if thumb_avif_ok else None,
+                    "full": versioned(full_rel),
+                    "fullAvif": versioned(avif_path(full_rel)) if full_avif_ok else None,
+                    "fullSizes": full_sizes,
                     "width": full_w,
                     "height": full_h,
                     "thumbWidth": thumb_w,
@@ -815,10 +845,19 @@ def build(content_dir: Path, dist_dir: Path, web_dir: Path, cache_dir: Path | No
 
     manifest = {
         "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
+        # Where the photo files live. Empty: next to the page (local preview).
+        # Set by --image-base when publishing, e.g. the Cloudflare Pages URL.
+        "imageBase": image_base,
         "albums": albums,
         "tags": tag_index,
     }
-    (dist_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    manifest_json = json.dumps(manifest, indent=2)
+    (dist_dir / "manifest.json").write_text(manifest_json, encoding="utf-8")
+    if image_base:
+        # Publishing: GitHub Pages serves web/ as-is (it has no photos to build
+        # from), so the committed manifest must point at the image host.
+        (web_dir / "manifest.json").write_text(manifest_json, encoding="utf-8")
+        print(f"manifest: images served from {image_base} (also written to {web_dir / 'manifest.json'})")
 
     total_photos = sum(a["photoCount"] for a in albums)
     cache_note = f", {cache_hits}/{cache_total} outputs reused from cache" if cache_total else ""
@@ -838,8 +877,18 @@ def main() -> None:
         "photos are copied instead of re-encoded on the next run. Pass --no-cache to disable.",
     )
     parser.add_argument("--no-cache", action="store_true", help="Disable the resize/encode cache entirely.")
+    parser.add_argument(
+        "--image-base",
+        default="",
+        help="URL the photo files are served from, e.g. https://img11-photos.pages.dev/. "
+        "Leave empty for a local preview (photos next to the page). When set, the manifest is "
+        "also written to web/manifest.json for GitHub Pages. scripts/publish.sh sets this.",
+    )
     args = parser.parse_args()
-    build(args.content_dir, args.dist_dir, args.web_dir, None if args.no_cache else args.cache_dir)
+    image_base = args.image_base
+    if image_base and not image_base.endswith("/"):
+        image_base += "/"
+    build(args.content_dir, args.dist_dir, args.web_dir, None if args.no_cache else args.cache_dir, image_base)
 
 
 if __name__ == "__main__":

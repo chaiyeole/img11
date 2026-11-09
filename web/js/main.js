@@ -9,9 +9,13 @@ function formatDate(isoDate) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "long" });
 }
 
+// Photos live on the image host named in the manifest (Cloudflare Pages when
+// published); with no host they sit next to the page (local preview).
+let imageBase = "./";
+
 function pickUrl(webpPath, avifPath) {
   const path = window.AVIF_OK && avifPath ? avifPath : webpPath;
-  return `./${path}`;
+  return `${imageBase}${path}`;
 }
 
 function indexRow(href, nameText, metaText, title) {
@@ -163,6 +167,10 @@ function renderAlbum(manifest) {
   const photosForLightbox = collection.photos.map((p) => ({
     slug: p.slug,
     full: pickUrl(p.full, p.fullAvif),
+    // Full-screen sizes (phone / 1080p / 4K), smallest first; the lightbox
+    // picks one for the screen. Older manifests only have `full`.
+    sizes: (p.fullSizes || []).map((s) => ({ edge: s.edge, url: pickUrl(s.webp, s.avif) })),
+    aspect: p.width / p.height,
     albumName: p.albumName,
     meta: p.meta,
   }));
@@ -191,6 +199,7 @@ function renderAlbum(manifest) {
   try {
     const [avifOk, manifest] = await Promise.all([AvifSupport.check(), fetchManifest()]);
     window.AVIF_OK = avifOk;
+    if (manifest.imageBase) imageBase = manifest.imageBase;
     if (document.getElementById("albums")) {
       renderHome(manifest);
       bindViewToggle(manifest);

@@ -51,7 +51,7 @@ TAG_IMAGE_MAX_EDGE = 1024
 # for new photos. Existing rows in tags.csv aren't affected.
 TAG_VOCABULARY = [
     "people", "portrait", "sky", "clouds", "sun", "sunset", "moon", "night",
-    "sea", "lake", "water", "trees", "mountains", "landscape", "architecture",
+    "sea", "lake", "water", "fake plastic trees", "mountains", "landscape", "architecture",
     "city", "street", "cars", "lights", "silhouette", "reflections", "window",
     "animals", "cat", "food", "flowers", "art", "still life", "motion", "b&w",
 ]
@@ -70,6 +70,7 @@ Guidance:
 - "still life": arranged or found objects as the subject (desk items, books, products).
 - "animals" for any animal; also add "cat" for cats.
 - "motion": deliberate motion blur, panning or light trails.
+- "fake plastic trees": any trees or greenery as a notable part of the frame (the name is a Radiohead easter egg, the trees need not be fake).
 Prefer 2-5 tags. Return an empty list only if nothing fits."""
 
 TAGS_SCHEMA = {

@@ -1,6 +1,13 @@
 const Lightbox = (() => {
   const INFO_KEY = "img11.showInfo";
   const HIST_BINS = 64;
+  // Above 2x, extra pixel density adds no visible detail at viewing distance.
+  const MAX_DPR = 2;
+  const SIZE_NAMES = [
+    [1600, "phone version"],
+    [2200, "1080p version"],
+    [Infinity, "2K / 4K version"],
+  ];
 
   // Rows of the info panel, top to bottom. Each shows only when the photo has
   // that value. Hints are written for people new to photography.
@@ -24,12 +31,16 @@ const Lightbox = (() => {
   let touchStartY = 0;
   let prefetched = [];
   let historyEntry = false; // true while our pushed history entry is current
+  let shown = null; // { url, edge } of the size currently displayed
   const histogramCache = new Map();
 
   function init() {
     overlayEl = document.getElementById("lightbox");
     if (!overlayEl) return;
     imgEl = document.getElementById("lightbox-img");
+    // Photos come from another site (the image host); "anonymous" lets the
+    // histogram read their pixels. The host must send Access-Control-Allow-Origin.
+    imgEl.crossOrigin = "anonymous";
     titleEl = document.getElementById("lightbox-caption");
     counterEl = document.getElementById("lightbox-counter");
     infoEl = document.getElementById("lightbox-info");
@@ -51,6 +62,21 @@ const Lightbox = (() => {
     }
     imgEl.addEventListener("load", () => {
       if (showInfo) renderHistogram(photos[index]);
+    });
+    // Rotating a phone or moving the window to a bigger monitor: upgrade to a
+    // larger file if the new screen needs one (never downgrade mid-view).
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (!overlayEl.classList.contains("open") || !shown) return;
+        const pick = chooseSize(photos[index]);
+        if (pick.edge > shown.edge) {
+          shown = pick;
+          imgEl.src = pick.url;
+          renderInfo(photos[index]);
+        }
+      }, 250);
     });
     showInfo = readInfoPref();
 
@@ -109,6 +135,39 @@ const Lightbox = (() => {
       /* not remembered, still toggles for this visit */
     }
     if (overlayEl.classList.contains("open")) renderInfo(photos[index]);
+  }
+
+  // One file per kind of screen, as decided for the site:
+  //   phone (narrow screen)                -> 1600px
+  //   up to ~1080p (<= 2200 real pixels)   -> 2200px
+  //   2K / 1440p, Retina laptops, 4K       -> 3840px, the best quality
+  // "Real pixels" is the screen's long side times its pixel density (capped
+  // at 2x), so a 1080p laptop set to 125% scaling still counts as 1080p.
+  const PHONE_MAX_SHORT_SIDE = 600; // CSS px; tablets and up are wider than this
+
+  function chooseSize(photo) {
+    const sizes = photo.sizes && photo.sizes.length ? photo.sizes : null;
+    if (!sizes) return { url: photo.full, edge: 0 };
+    const sw = Math.max(screen.width, window.innerWidth);
+    const sh = Math.max(screen.height, window.innerHeight);
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    let target;
+    if (Math.min(sw, sh) < PHONE_MAX_SHORT_SIDE) target = 1600;
+    else if (Math.max(sw, sh) * dpr <= 2200) target = 2200;
+    else target = Infinity;
+    // The biggest file up to the target (a photo whose original is small
+    // may not have the larger sizes).
+    const fitting = sizes.filter((s) => s.edge <= target);
+    return fitting.length ? fitting[fitting.length - 1] : sizes[0];
+  }
+
+  function sizeLabel(edge, aspect) {
+    if (!edge) return null;
+    const a = aspect || 1.5;
+    const w = Math.round(a >= 1 ? edge : edge * a);
+    const h = Math.round(a >= 1 ? edge / a : edge);
+    const name = SIZE_NAMES.find(([max]) => edge <= max)[1];
+    return `${w} × ${h} · ${name}`;
   }
 
   // "2026-11-04T07:20" -> "4 Nov 2026, 7:20 am"; date-only values -> "4 Nov 2026".
@@ -170,6 +229,10 @@ const Lightbox = (() => {
     if (!FIELDS.some((f) => m[f.key])) {
       infoEl.appendChild(row("Camera", "No camera data for this photo"));
     }
+    const resolution = shown && sizeLabel(shown.edge, photo && photo.aspect);
+    if (resolution) {
+      infoEl.appendChild(row("Shown at", resolution, "Picked for this screen — bigger screens get a sharper file"));
+    }
 
     if (imgEl.complete && imgEl.naturalWidth) renderHistogram(photo);
   }
@@ -180,7 +243,8 @@ const Lightbox = (() => {
   function renderHistogram(photo) {
     const target = infoEl && infoEl.querySelector(".histogram");
     if (!target || !photo) return;
-    let bins = histogramCache.get(photo.full);
+    const key = shown ? shown.url : photo.full;
+    let bins = histogramCache.get(key);
     if (!bins) {
       try {
         const size = 96;
@@ -195,7 +259,7 @@ const Lightbox = (() => {
           const lum = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
           bins[Math.min(HIST_BINS - 1, Math.floor((lum / 256) * HIST_BINS))]++;
         }
-        histogramCache.set(photo.full, bins);
+        histogramCache.set(key, bins);
       } catch {
         target.closest(".info-row").hidden = true;
         return;
@@ -229,7 +293,8 @@ const Lightbox = (() => {
 
   function show() {
     const photo = photos[index];
-    imgEl.src = photo.full;
+    shown = chooseSize(photo);
+    imgEl.src = shown.url;
     imgEl.alt = photo.slug;
     if (titleEl) titleEl.textContent = albumName;
     if (counterEl) {
@@ -256,7 +321,8 @@ const Lightbox = (() => {
     const prevIdx = (index - 1 + photos.length) % photos.length;
     prefetched = [nextIdx, prevIdx].map((i) => {
       const img = new Image();
-      img.src = photos[i].full;
+      img.crossOrigin = "anonymous"; // same request mode as the viewer, so the cached copy is reused
+      img.src = chooseSize(photos[i]).url;
       return img;
     });
   }
@@ -278,6 +344,7 @@ const Lightbox = (() => {
     if (!overlayEl.classList.contains("open")) return;
     overlayEl.classList.remove("open");
     imgEl.src = "";
+    shown = null;
     exitFullscreen();
     // Closed via ×, Esc, background tap or leaving fullscreen: drop the
     // history entry we added so a later back doesn't just reopen nothing.
