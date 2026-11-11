@@ -1,12 +1,844 @@
 {
-  "generatedAt": "2026-11-09T09:09:07Z",
+  "generatedAt": "2026-11-11T13:08:50Z",
   "imageBase": "https://img11-photos.chaitanyayeole7.workers.dev/",
   "albums": [
+    {
+      "name": "August 2026",
+      "slug": "august-2026",
+      "date": "2026-08-02",
+      "order": 1,
+      "dateLabel": "Aug 2026",
+      "description": null,
+      "photoCount": 6,
+      "photos": [
+        {
+          "slug": "dscf0332",
+          "thumb": "thumbs/august-2026/dscf0332.webp?v=950d1621",
+          "thumbAvif": "thumbs/august-2026/dscf0332.avif?v=950d1621",
+          "full": "full/august-2026/dscf0332.webp?v=950d1621",
+          "fullAvif": "full/august-2026/dscf0332.avif?v=950d1621",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/august-2026/dscf0332.webp?v=950d1621",
+              "avif": "full-1600/august-2026/dscf0332.avif?v=950d1621"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/august-2026/dscf0332.webp?v=950d1621",
+              "avif": "full/august-2026/dscf0332.avif?v=950d1621"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/august-2026/dscf0332.webp?v=950d1621",
+              "avif": "full-3840/august-2026/dscf0332.avif?v=950d1621"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "city",
+            "sky",
+            "clouds",
+            "sunset"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "31.4mm",
+            "aperture": "f/5.6",
+            "shutter": "1/500s",
+            "iso": "ISO 160",
+            "ev": "+0.3 EV",
+            "taken": "2026-08-02T18:23"
+          }
+        },
+        {
+          "slug": "dscf0365",
+          "thumb": "thumbs/august-2026/dscf0365.webp?v=b22ae9be",
+          "thumbAvif": "thumbs/august-2026/dscf0365.avif?v=b22ae9be",
+          "full": "full/august-2026/dscf0365.webp?v=b22ae9be",
+          "fullAvif": "full/august-2026/dscf0365.avif?v=b22ae9be",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/august-2026/dscf0365.webp?v=b22ae9be",
+              "avif": "full-1600/august-2026/dscf0365.avif?v=b22ae9be"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/august-2026/dscf0365.webp?v=b22ae9be",
+              "avif": "full/august-2026/dscf0365.avif?v=b22ae9be"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/august-2026/dscf0365.webp?v=b22ae9be",
+              "avif": "full-3840/august-2026/dscf0365.avif?v=b22ae9be"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "portrait",
+            "people",
+            "fake plastic trees",
+            "b&w"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "44.5mm",
+            "aperture": "f/5.6",
+            "shutter": "1/125s",
+            "iso": "ISO 500",
+            "ev": "-1.3 EV",
+            "taken": "2026-08-08T17:58"
+          }
+        },
+        {
+          "slug": "dscf0370",
+          "thumb": "thumbs/august-2026/dscf0370.webp?v=ef26711e",
+          "thumbAvif": "thumbs/august-2026/dscf0370.avif?v=ef26711e",
+          "full": "full/august-2026/dscf0370.webp?v=ef26711e",
+          "fullAvif": "full/august-2026/dscf0370.avif?v=ef26711e",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/august-2026/dscf0370.webp?v=ef26711e",
+              "avif": "full-1600/august-2026/dscf0370.avif?v=ef26711e"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/august-2026/dscf0370.webp?v=ef26711e",
+              "avif": "full/august-2026/dscf0370.avif?v=ef26711e"
+            },
+            {
+              "edge": 2603,
+              "webp": "full-3840/august-2026/dscf0370.webp?v=ef26711e",
+              "avif": "full-3840/august-2026/dscf0370.avif?v=ef26711e"
+            }
+          ],
+          "width": 2200,
+          "height": 1466,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "reflections",
+            "water",
+            "fake plastic trees"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "45mm",
+            "aperture": "f/5.6",
+            "shutter": "1/140s",
+            "iso": "ISO 500",
+            "ev": "-0.3 EV"
+          }
+        },
+        {
+          "slug": "dscf0380",
+          "thumb": "thumbs/august-2026/dscf0380.webp?v=ff35c682",
+          "thumbAvif": "thumbs/august-2026/dscf0380.avif?v=ff35c682",
+          "full": "full/august-2026/dscf0380.webp?v=ff35c682",
+          "fullAvif": "full/august-2026/dscf0380.avif?v=ff35c682",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/august-2026/dscf0380.webp?v=ff35c682",
+              "avif": "full-1600/august-2026/dscf0380.avif?v=ff35c682"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/august-2026/dscf0380.webp?v=ff35c682",
+              "avif": "full/august-2026/dscf0380.avif?v=ff35c682"
+            },
+            {
+              "edge": 3545,
+              "webp": "full-3840/august-2026/dscf0380.webp?v=ff35c682",
+              "avif": "full-3840/august-2026/dscf0380.avif?v=ff35c682"
+            }
+          ],
+          "width": 2200,
+          "height": 1466,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "people",
+            "fake plastic trees"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "15mm",
+            "aperture": "f/4",
+            "shutter": "1/110s",
+            "iso": "ISO 160",
+            "ev": "-1.3 EV",
+            "taken": "2026-08-08T18:08"
+          }
+        },
+        {
+          "slug": "dscf0416",
+          "thumb": "thumbs/august-2026/dscf0416.webp?v=4f75169c",
+          "thumbAvif": "thumbs/august-2026/dscf0416.avif?v=4f75169c",
+          "full": "full/august-2026/dscf0416.webp?v=4f75169c",
+          "fullAvif": "full/august-2026/dscf0416.avif?v=4f75169c",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/august-2026/dscf0416.webp?v=4f75169c",
+              "avif": "full-1600/august-2026/dscf0416.avif?v=4f75169c"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/august-2026/dscf0416.webp?v=4f75169c",
+              "avif": "full/august-2026/dscf0416.avif?v=4f75169c"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/august-2026/dscf0416.webp?v=4f75169c",
+              "avif": "full-3840/august-2026/dscf0416.avif?v=4f75169c"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "still life"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "26.4mm",
+            "aperture": "f/5.6",
+            "shutter": "1/100s",
+            "iso": "ISO 3200",
+            "ev": "-1.3 EV",
+            "taken": "2026-08-15T17:41"
+          }
+        },
+        {
+          "slug": "img-7020",
+          "thumb": "thumbs/august-2026/img-7020.webp?v=2176e553",
+          "thumbAvif": "thumbs/august-2026/img-7020.avif?v=2176e553",
+          "full": "full/august-2026/img-7020.webp?v=2176e553",
+          "fullAvif": "full/august-2026/img-7020.avif?v=2176e553",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/august-2026/img-7020.webp?v=2176e553",
+              "avif": "full-1600/august-2026/img-7020.avif?v=2176e553"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/august-2026/img-7020.webp?v=2176e553",
+              "avif": "full/august-2026/img-7020.avif?v=2176e553"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/august-2026/img-7020.webp?v=2176e553",
+              "avif": "full-3840/august-2026/img-7020.avif?v=2176e553"
+            }
+          ],
+          "width": 2200,
+          "height": 1650,
+          "thumbWidth": 800,
+          "thumbHeight": 600,
+          "tags": [
+            "portrait",
+            "people",
+            "art"
+          ],
+          "meta": {
+            "camera": "Apple iPhone 15 Plus",
+            "focal": "133mm",
+            "aperture": "f/1.6",
+            "shutter": "1/33s",
+            "iso": "ISO 320",
+            "ev": "-0.8 EV",
+            "taken": "2026-08-15T17:33"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Odyssey",
+      "slug": "odyssey",
+      "date": "2026-08-01",
+      "order": 2,
+      "dateLabel": "Aug 2026",
+      "description": null,
+      "photoCount": 8,
+      "photos": [
+        {
+          "slug": "odyssey-1",
+          "thumb": "thumbs/odyssey/odyssey-1.webp?v=4b193605",
+          "thumbAvif": "thumbs/odyssey/odyssey-1.avif?v=4b193605",
+          "full": "full/odyssey/odyssey-1.webp?v=4b193605",
+          "fullAvif": "full/odyssey/odyssey-1.avif?v=4b193605",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/odyssey/odyssey-1.webp?v=4b193605",
+              "avif": "full-1600/odyssey/odyssey-1.avif?v=4b193605"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/odyssey/odyssey-1.webp?v=4b193605",
+              "avif": "full/odyssey/odyssey-1.avif?v=4b193605"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/odyssey/odyssey-1.webp?v=4b193605",
+              "avif": "full-3840/odyssey/odyssey-1.avif?v=4b193605"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "portrait",
+            "people"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "23.5mm",
+            "aperture": "f/4.4",
+            "shutter": "1/100s",
+            "iso": "ISO 400",
+            "ev": "+0.3 EV",
+            "taken": "2026-08-02T18:26"
+          }
+        },
+        {
+          "slug": "odyssey-2",
+          "thumb": "thumbs/odyssey/odyssey-2.webp?v=6b98f6ce",
+          "thumbAvif": "thumbs/odyssey/odyssey-2.avif?v=6b98f6ce",
+          "full": "full/odyssey/odyssey-2.webp?v=6b98f6ce",
+          "fullAvif": "full/odyssey/odyssey-2.avif?v=6b98f6ce",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/odyssey/odyssey-2.webp?v=6b98f6ce",
+              "avif": "full-1600/odyssey/odyssey-2.avif?v=6b98f6ce"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/odyssey/odyssey-2.webp?v=6b98f6ce",
+              "avif": "full/odyssey/odyssey-2.avif?v=6b98f6ce"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/odyssey/odyssey-2.webp?v=6b98f6ce",
+              "avif": "full-3840/odyssey/odyssey-2.avif?v=6b98f6ce"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "portrait",
+            "people"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "45mm",
+            "aperture": "f/5.6",
+            "shutter": "1/210s",
+            "iso": "ISO 160",
+            "ev": "-0.3 EV",
+            "taken": "2026-08-01T14:59"
+          }
+        },
+        {
+          "slug": "odyssey-3",
+          "thumb": "thumbs/odyssey/odyssey-3.webp?v=5aac85e6",
+          "thumbAvif": "thumbs/odyssey/odyssey-3.avif?v=5aac85e6",
+          "full": "full/odyssey/odyssey-3.webp?v=5aac85e6",
+          "fullAvif": "full/odyssey/odyssey-3.avif?v=5aac85e6",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/odyssey/odyssey-3.webp?v=5aac85e6",
+              "avif": "full-1600/odyssey/odyssey-3.avif?v=5aac85e6"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/odyssey/odyssey-3.webp?v=5aac85e6",
+              "avif": "full/odyssey/odyssey-3.avif?v=5aac85e6"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/odyssey/odyssey-3.webp?v=5aac85e6",
+              "avif": "full-3840/odyssey/odyssey-3.avif?v=5aac85e6"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "portrait",
+            "people",
+            "fake plastic trees"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "28.8mm",
+            "aperture": "f/4.5",
+            "shutter": "1/100s",
+            "iso": "ISO 400",
+            "ev": "-0.3 EV",
+            "taken": "2026-08-01T17:21"
+          }
+        },
+        {
+          "slug": "odyssey-4",
+          "thumb": "thumbs/odyssey/odyssey-4.webp?v=e88d28e6",
+          "thumbAvif": "thumbs/odyssey/odyssey-4.avif?v=e88d28e6",
+          "full": "full/odyssey/odyssey-4.webp?v=e88d28e6",
+          "fullAvif": "full/odyssey/odyssey-4.avif?v=e88d28e6",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/odyssey/odyssey-4.webp?v=e88d28e6",
+              "avif": "full-1600/odyssey/odyssey-4.avif?v=e88d28e6"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/odyssey/odyssey-4.webp?v=e88d28e6",
+              "avif": "full/odyssey/odyssey-4.avif?v=e88d28e6"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/odyssey/odyssey-4.webp?v=e88d28e6",
+              "avif": "full-3840/odyssey/odyssey-4.avif?v=e88d28e6"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "portrait",
+            "people"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "24.9mm",
+            "aperture": "f/5.6",
+            "shutter": "1/170s",
+            "iso": "ISO 320",
+            "ev": "-0.3 EV",
+            "taken": "2026-08-01T14:55"
+          }
+        },
+        {
+          "slug": "odyssey-5",
+          "thumb": "thumbs/odyssey/odyssey-5.webp?v=3c1afa5a",
+          "thumbAvif": "thumbs/odyssey/odyssey-5.avif?v=3c1afa5a",
+          "full": "full/odyssey/odyssey-5.webp?v=3c1afa5a",
+          "fullAvif": "full/odyssey/odyssey-5.avif?v=3c1afa5a",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/odyssey/odyssey-5.webp?v=3c1afa5a",
+              "avif": "full-1600/odyssey/odyssey-5.avif?v=3c1afa5a"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/odyssey/odyssey-5.webp?v=3c1afa5a",
+              "avif": "full/odyssey/odyssey-5.avif?v=3c1afa5a"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/odyssey/odyssey-5.webp?v=3c1afa5a",
+              "avif": "full-3840/odyssey/odyssey-5.avif?v=3c1afa5a"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "people",
+            "lights",
+            "food"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "15mm",
+            "aperture": "f/3.5",
+            "shutter": "1/100s",
+            "iso": "ISO 1250",
+            "taken": "2026-08-01T19:51"
+          }
+        },
+        {
+          "slug": "odyssey-6",
+          "thumb": "thumbs/odyssey/odyssey-6.webp?v=26146e51",
+          "thumbAvif": "thumbs/odyssey/odyssey-6.avif?v=26146e51",
+          "full": "full/odyssey/odyssey-6.webp?v=26146e51",
+          "fullAvif": "full/odyssey/odyssey-6.avif?v=26146e51",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/odyssey/odyssey-6.webp?v=26146e51",
+              "avif": "full-1600/odyssey/odyssey-6.avif?v=26146e51"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/odyssey/odyssey-6.webp?v=26146e51",
+              "avif": "full/odyssey/odyssey-6.avif?v=26146e51"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/odyssey/odyssey-6.webp?v=26146e51",
+              "avif": "full-3840/odyssey/odyssey-6.avif?v=26146e51"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "people",
+            "food",
+            "lights"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "27.1mm",
+            "aperture": "f/4.4",
+            "shutter": "1/100s",
+            "iso": "ISO 2000",
+            "taken": "2026-08-01T19:52"
+          }
+        },
+        {
+          "slug": "odyssey-7",
+          "thumb": "thumbs/odyssey/odyssey-7.webp?v=ea8e0370",
+          "thumbAvif": "thumbs/odyssey/odyssey-7.avif?v=ea8e0370",
+          "full": "full/odyssey/odyssey-7.webp?v=ea8e0370",
+          "fullAvif": "full/odyssey/odyssey-7.avif?v=ea8e0370",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/odyssey/odyssey-7.webp?v=ea8e0370",
+              "avif": "full-1600/odyssey/odyssey-7.avif?v=ea8e0370"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/odyssey/odyssey-7.webp?v=ea8e0370",
+              "avif": "full/odyssey/odyssey-7.avif?v=ea8e0370"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/odyssey/odyssey-7.webp?v=ea8e0370",
+              "avif": "full-3840/odyssey/odyssey-7.avif?v=ea8e0370"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "people",
+            "food",
+            "lights"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "27.1mm",
+            "aperture": "f/5.6",
+            "shutter": "1/100s",
+            "iso": "ISO 2000",
+            "ev": "-0.7 EV",
+            "taken": "2026-08-01T19:51"
+          }
+        },
+        {
+          "slug": "odyssey-8",
+          "thumb": "thumbs/odyssey/odyssey-8.webp?v=a98b1264",
+          "thumbAvif": "thumbs/odyssey/odyssey-8.avif?v=a98b1264",
+          "full": "full/odyssey/odyssey-8.webp?v=a98b1264",
+          "fullAvif": "full/odyssey/odyssey-8.avif?v=a98b1264",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/odyssey/odyssey-8.webp?v=a98b1264",
+              "avif": "full-1600/odyssey/odyssey-8.avif?v=a98b1264"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/odyssey/odyssey-8.webp?v=a98b1264",
+              "avif": "full/odyssey/odyssey-8.avif?v=a98b1264"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/odyssey/odyssey-8.webp?v=a98b1264",
+              "avif": "full-3840/odyssey/odyssey-8.avif?v=a98b1264"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "portrait"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "45mm",
+            "aperture": "f/5.6",
+            "shutter": "1/140s",
+            "iso": "ISO 400",
+            "ev": "-0.3 EV",
+            "taken": "2026-08-01T14:57"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Arooj",
+      "slug": "arooj",
+      "date": "2026-07-31",
+      "order": 3,
+      "dateLabel": "Jul 2026",
+      "description": null,
+      "photoCount": 5,
+      "photos": [
+        {
+          "slug": "arooj-1",
+          "thumb": "thumbs/arooj/arooj-1.webp?v=c090377a",
+          "thumbAvif": "thumbs/arooj/arooj-1.avif?v=c090377a",
+          "full": "full/arooj/arooj-1.webp?v=c090377a",
+          "fullAvif": "full/arooj/arooj-1.avif?v=c090377a",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/arooj/arooj-1.webp?v=c090377a",
+              "avif": "full-1600/arooj/arooj-1.avif?v=c090377a"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/arooj/arooj-1.webp?v=c090377a",
+              "avif": "full/arooj/arooj-1.avif?v=c090377a"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/arooj/arooj-1.webp?v=c090377a",
+              "avif": "full-3840/arooj/arooj-1.avif?v=c090377a"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "flowers",
+            "fake plastic trees"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "15mm",
+            "aperture": "f/3.5",
+            "shutter": "1/100s",
+            "iso": "ISO 320",
+            "ev": "-0.3 EV",
+            "taken": "2026-08-01T18:41"
+          }
+        },
+        {
+          "slug": "arooj-2",
+          "thumb": "thumbs/arooj/arooj-2.webp?v=2cc65ad4",
+          "thumbAvif": "thumbs/arooj/arooj-2.avif?v=2cc65ad4",
+          "full": "full/arooj/arooj-2.webp?v=2cc65ad4",
+          "fullAvif": "full/arooj/arooj-2.avif?v=2cc65ad4",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/arooj/arooj-2.webp?v=2cc65ad4",
+              "avif": "full-1600/arooj/arooj-2.avif?v=2cc65ad4"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/arooj/arooj-2.webp?v=2cc65ad4",
+              "avif": "full/arooj/arooj-2.avif?v=2cc65ad4"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/arooj/arooj-2.webp?v=2cc65ad4",
+              "avif": "full-3840/arooj/arooj-2.avif?v=2cc65ad4"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "sky",
+            "clouds",
+            "city",
+            "silhouette"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "45mm",
+            "aperture": "f/5.6",
+            "shutter": "1/4000s",
+            "iso": "ISO 160",
+            "ev": "-0.7 EV",
+            "taken": "2026-08-01T15:43"
+          }
+        },
+        {
+          "slug": "arooj-3",
+          "thumb": "thumbs/arooj/arooj-3.webp?v=e02b543b",
+          "thumbAvif": "thumbs/arooj/arooj-3.avif?v=e02b543b",
+          "full": "full/arooj/arooj-3.webp?v=e02b543b",
+          "fullAvif": "full/arooj/arooj-3.avif?v=e02b543b",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/arooj/arooj-3.webp?v=e02b543b",
+              "avif": "full-1600/arooj/arooj-3.avif?v=e02b543b"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/arooj/arooj-3.webp?v=e02b543b",
+              "avif": "full/arooj/arooj-3.avif?v=e02b543b"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/arooj/arooj-3.webp?v=e02b543b",
+              "avif": "full-3840/arooj/arooj-3.avif?v=e02b543b"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "sky",
+            "clouds",
+            "architecture",
+            "silhouette"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "45mm",
+            "aperture": "f/5.6",
+            "shutter": "1/1800s",
+            "iso": "ISO 160",
+            "ev": "-0.7 EV",
+            "taken": "2026-08-01T15:44"
+          }
+        },
+        {
+          "slug": "arooj-4",
+          "thumb": "thumbs/arooj/arooj-4.webp?v=58d52e74",
+          "thumbAvif": "thumbs/arooj/arooj-4.avif?v=58d52e74",
+          "full": "full/arooj/arooj-4.webp?v=58d52e74",
+          "fullAvif": "full/arooj/arooj-4.avif?v=58d52e74",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/arooj/arooj-4.webp?v=58d52e74",
+              "avif": "full-1600/arooj/arooj-4.avif?v=58d52e74"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/arooj/arooj-4.webp?v=58d52e74",
+              "avif": "full/arooj/arooj-4.avif?v=58d52e74"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/arooj/arooj-4.webp?v=58d52e74",
+              "avif": "full-3840/arooj/arooj-4.avif?v=58d52e74"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "sky",
+            "clouds",
+            "sun",
+            "city",
+            "silhouette"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "37.4mm",
+            "aperture": "f/5.6",
+            "shutter": "1/1800s",
+            "iso": "ISO 160",
+            "ev": "-0.7 EV",
+            "taken": "2026-08-02T18:23"
+          }
+        },
+        {
+          "slug": "arooj-5",
+          "thumb": "thumbs/arooj/arooj-5.webp?v=bfe96923",
+          "thumbAvif": "thumbs/arooj/arooj-5.avif?v=bfe96923",
+          "full": "full/arooj/arooj-5.webp?v=bfe96923",
+          "fullAvif": "full/arooj/arooj-5.avif?v=bfe96923",
+          "fullSizes": [
+            {
+              "edge": 1600,
+              "webp": "full-1600/arooj/arooj-5.webp?v=bfe96923",
+              "avif": "full-1600/arooj/arooj-5.avif?v=bfe96923"
+            },
+            {
+              "edge": 2200,
+              "webp": "full/arooj/arooj-5.webp?v=bfe96923",
+              "avif": "full/arooj/arooj-5.avif?v=bfe96923"
+            },
+            {
+              "edge": 3840,
+              "webp": "full-3840/arooj/arooj-5.webp?v=bfe96923",
+              "avif": "full-3840/arooj/arooj-5.avif?v=bfe96923"
+            }
+          ],
+          "width": 2200,
+          "height": 1467,
+          "thumbWidth": 800,
+          "thumbHeight": 533,
+          "tags": [
+            "b&w",
+            "still life"
+          ],
+          "meta": {
+            "camera": "Fujifilm X-S20",
+            "focal": "19.2mm",
+            "aperture": "f/5.6",
+            "shutter": "1/17s",
+            "iso": "ISO 6400",
+            "ev": "-0.7 EV",
+            "taken": "2026-07-31T19:20"
+          }
+        }
+      ]
+    },
     {
       "name": "Pune Kartdrome",
       "slug": "pune-kartdrome",
       "date": "2026-09-27",
-      "order": 1,
+      "order": 4,
       "dateLabel": "Sep 2026",
       "description": null,
       "photoCount": 8,
@@ -356,7 +1188,7 @@
       "name": "Photowalk 1",
       "slug": "photowalk-1",
       "date": "2026-07-18",
-      "order": 2,
+      "order": 5,
       "dateLabel": "Jul 2026",
       "description": null,
       "photoCount": 18,
@@ -1125,7 +1957,7 @@
       "name": "NGP 2",
       "slug": "ngp-2",
       "date": "2026-11-04",
-      "order": 3,
+      "order": 6,
       "dateLabel": "Nov 2026",
       "description": null,
       "photoCount": 9,
@@ -1509,7 +2341,7 @@
       "name": "NGP 1",
       "slug": "ngp-1",
       "date": "2026-11-04",
-      "order": 4,
+      "order": 7,
       "dateLabel": "Nov2026",
       "description": null,
       "photoCount": 8,
@@ -1857,7 +2689,7 @@
       "name": "Vo Nahin",
       "slug": "vo-nahin",
       "date": "2026-01-23",
-      "order": 5,
+      "order": 8,
       "dateLabel": "Throwback",
       "description": null,
       "photoCount": 10,
@@ -2279,7 +3111,7 @@
       "name": "In Repair",
       "slug": "in-repair",
       "date": "2025-02-02",
-      "order": 6,
+      "order": 9,
       "dateLabel": "Blr 23-26",
       "description": null,
       "photoCount": 15,
@@ -2850,7 +3682,7 @@
       "name": "Soft Sept",
       "slug": "soft-sept",
       "date": "2026-01-30",
-      "order": 7,
+      "order": 10,
       "dateLabel": "Sept 2026",
       "description": null,
       "photoCount": 5,
@@ -3025,7 +3857,7 @@
       "name": "You be you",
       "slug": "you-be-you",
       "date": "2026-09-27",
-      "order": 8,
+      "order": 11,
       "dateLabel": "Sept 2026",
       "description": null,
       "photoCount": 8,
@@ -3380,7 +4212,7 @@
       "name": "First",
       "slug": "first",
       "date": "2026-06-05",
-      "order": 9,
+      "order": 12,
       "dateLabel": "June 2026",
       "description": null,
       "photoCount": 12,
@@ -3890,7 +4722,7 @@
       "name": "Jaipur 2026",
       "slug": "jaipur-2026",
       "date": "2026-01-30",
-      "order": 10,
+      "order": 13,
       "dateLabel": "Jan 2026",
       "description": null,
       "photoCount": 5,
@@ -4111,7 +4943,7 @@
       "name": "Jodhpur 2026",
       "slug": "jodhpur-2026",
       "date": "2026-01-26",
-      "order": 11,
+      "order": 14,
       "dateLabel": "Jan 2026",
       "description": null,
       "photoCount": 12,
@@ -4609,7 +5441,7 @@
       "name": "Udaipur 2026",
       "slug": "udaipur-2026",
       "date": "2026-01-24",
-      "order": 12,
+      "order": 15,
       "dateLabel": "Jan 2026",
       "description": null,
       "photoCount": 4,
@@ -4792,7 +5624,7 @@
       "name": "Mumbai 2026",
       "slug": "mumbai-2026",
       "date": "2026-01-22",
-      "order": 13,
+      "order": 16,
       "dateLabel": "Jan 2026",
       "description": null,
       "photoCount": 9,
@@ -5172,7 +6004,7 @@
       "name": "A stop",
       "slug": "a-stop",
       "date": "2025-07-06",
-      "order": 14,
+      "order": 17,
       "dateLabel": "July 2025",
       "description": null,
       "photoCount": 8,
@@ -5507,7 +6339,7 @@
       "name": "Always room in life for this",
       "slug": "always-room-in-life-for-this",
       "date": "2025-07-05",
-      "order": 15,
+      "order": 18,
       "dateLabel": "July 2025",
       "description": null,
       "photoCount": 16,
@@ -6165,7 +6997,7 @@
       "name": "Fall of Mexican Peanuts",
       "slug": "fall-of-mexican-peanuts",
       "date": "2025-07-05",
-      "order": 16,
+      "order": 19,
       "dateLabel": "July 2025",
       "description": null,
       "photoCount": 7,
@@ -6465,7 +7297,7 @@
       "name": "Puducherry",
       "slug": "puducherry",
       "date": "2025-07-05",
-      "order": 17,
+      "order": 20,
       "dateLabel": "July 2025",
       "description": null,
       "photoCount": 13,
@@ -7019,17 +7851,17 @@
     {
       "name": "people",
       "slug": "people",
-      "count": 67
+      "count": 77
     },
     {
       "name": "sky",
       "slug": "sky",
-      "count": 57
+      "count": 61
     },
     {
       "name": "architecture",
       "slug": "architecture",
-      "count": 48
+      "count": 49
     },
     {
       "name": "street",
@@ -7037,34 +7869,44 @@
       "count": 40
     },
     {
+      "name": "b&w",
+      "slug": "bw",
+      "count": 37
+    },
+    {
       "name": "city",
       "slug": "city",
-      "count": 34
+      "count": 37
     },
     {
       "name": "fake plastic trees",
       "slug": "fake-plastic-trees",
-      "count": 29
-    },
-    {
-      "name": "b&w",
-      "slug": "bw",
-      "count": 27
+      "count": 34
     },
     {
       "name": "clouds",
       "slug": "clouds",
-      "count": 24
-    },
-    {
-      "name": "silhouette",
-      "slug": "silhouette",
-      "count": 20
+      "count": 28
     },
     {
       "name": "portrait",
       "slug": "portrait",
+      "count": 25
+    },
+    {
+      "name": "silhouette",
+      "slug": "silhouette",
+      "count": 23
+    },
+    {
+      "name": "lights",
+      "slug": "lights",
       "count": 18
+    },
+    {
+      "name": "sunset",
+      "slug": "sunset",
+      "count": 17
     },
     {
       "name": "cars",
@@ -7072,19 +7914,9 @@
       "count": 16
     },
     {
-      "name": "sunset",
-      "slug": "sunset",
-      "count": 16
-    },
-    {
-      "name": "lights",
-      "slug": "lights",
-      "count": 15
-    },
-    {
       "name": "sun",
       "slug": "sun",
-      "count": 15
+      "count": 16
     },
     {
       "name": "night",
@@ -7109,11 +7941,21 @@
     {
       "name": "reflections",
       "slug": "reflections",
+      "count": 8
+    },
+    {
+      "name": "food",
+      "slug": "food",
       "count": 7
     },
     {
       "name": "sea",
       "slug": "sea",
+      "count": 7
+    },
+    {
+      "name": "still life",
+      "slug": "still-life",
       "count": 7
     },
     {
@@ -7127,29 +7969,19 @@
       "count": 5
     },
     {
-      "name": "still life",
-      "slug": "still-life",
-      "count": 5
-    },
-    {
       "name": "window",
       "slug": "window",
       "count": 5
     },
     {
-      "name": "food",
-      "slug": "food",
-      "count": 4
-    },
-    {
       "name": "art",
       "slug": "art",
-      "count": 3
+      "count": 4
     },
     {
       "name": "flowers",
       "slug": "flowers",
-      "count": 3
+      "count": 4
     },
     {
       "name": "moon",
@@ -7159,7 +7991,7 @@
     {
       "name": "water",
       "slug": "water",
-      "count": 2
+      "count": 3
     },
     {
       "name": "cat",
