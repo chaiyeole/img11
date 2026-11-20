@@ -18,6 +18,20 @@ function pickUrl(webpPath, avifPath) {
   return `${imageBase}${path}`;
 }
 
+// Manifest photos -> what the lightbox needs.
+function toLightboxPhotos(photos) {
+  return photos.map((p) => ({
+    slug: p.slug,
+    full: pickUrl(p.full, p.fullAvif),
+    // Full-screen sizes (phone / 1080p / 4K), smallest first; the lightbox
+    // picks one for the screen. Older manifests only have `full`.
+    sizes: (p.fullSizes || []).map((s) => ({ edge: s.edge, url: pickUrl(s.webp, s.avif) })),
+    aspect: p.width / p.height,
+    albumName: p.albumName,
+    meta: p.meta,
+  }));
+}
+
 function indexRow(href, nameText, metaText, title) {
   const li = document.createElement("li");
   const a = document.createElement("a");
@@ -104,6 +118,24 @@ function bindViewToggle(manifest) {
   window.addEventListener("popstate", () => renderHome(manifest));
 }
 
+// Home page Play: a full-screen slideshow of every photo, album by album in
+// the site's album order.
+function bindPlayAll(manifest) {
+  const btn = document.getElementById("play-all");
+  if (!btn || typeof Lightbox === "undefined") return;
+  const all = [];
+  for (const album of manifest.albums) {
+    for (const photo of album.photos) all.push({ ...photo, albumName: album.name });
+  }
+  if (!all.length) return;
+  const list = toLightboxPhotos(all);
+  btn.hidden = false;
+  btn.addEventListener("click", () => {
+    (window.dataLayer = window.dataLayer || []).push({ event: "slideshow_start", photo_count: list.length });
+    Lightbox.open(list, 0, "All photos", { slideshow: true });
+  });
+}
+
 // Resolve ?album= or ?tag= into one shape the grid/lightbox can render:
 // a tag view is just a synthetic album whose photos span every folder.
 function resolveCollection(manifest) {
@@ -164,16 +196,7 @@ function renderAlbum(manifest) {
   const dateEl = document.getElementById("album-date");
   if (dateEl) dateEl.textContent = collection.subtitle;
 
-  const photosForLightbox = collection.photos.map((p) => ({
-    slug: p.slug,
-    full: pickUrl(p.full, p.fullAvif),
-    // Full-screen sizes (phone / 1080p / 4K), smallest first; the lightbox
-    // picks one for the screen. Older manifests only have `full`.
-    sizes: (p.fullSizes || []).map((s) => ({ edge: s.edge, url: pickUrl(s.webp, s.avif) })),
-    aspect: p.width / p.height,
-    albumName: p.albumName,
-    meta: p.meta,
-  }));
+  const photosForLightbox = toLightboxPhotos(collection.photos);
 
   container.innerHTML = "";
   collection.photos.forEach((photo, i) => {
@@ -203,6 +226,7 @@ function renderAlbum(manifest) {
     if (document.getElementById("albums")) {
       renderHome(manifest);
       bindViewToggle(manifest);
+      bindPlayAll(manifest);
     } else if (document.getElementById("photos")) {
       renderAlbum(manifest);
     }

@@ -25,6 +25,10 @@
       <a class="label view-link" data-view="folders" href="./index.html">Folders</a>
       <span class="label view-sep" aria-hidden="true">&middot;</span>
       <a class="label view-link" data-view="tags" href="./index.html?view=tags">Tags</a>
+      <span class="label view-sep" aria-hidden="true">&middot;</span>
+      <button type="button" id="play-all" class="label play-all" aria-label="Play a slideshow of all photos" title="Play slideshow" hidden>
+        <svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 L10 6 L0 12 Z"></path></svg>
+      </button>
     </nav>
   </header>
   <main>
@@ -43,7 +47,27 @@
       </svg>
     </a>
   </footer>
+  <div id="lightbox" class="lightbox-overlay" role="dialog" aria-modal="true">
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+    <button class="lightbox-nav prev" aria-label="Previous">&#8249;</button>
+    <img id="lightbox-img" alt="" />
+    <button class="lightbox-nav next" aria-label="Next">&#8250;</button>
+    <button class="lightbox-info-toggle" aria-label="Show photo info (i)" aria-pressed="false">i</button>
+    <button class="lightbox-play" aria-label="Pause slideshow (space)" aria-pressed="true">
+      <svg class="lightbox-ring" viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="ring-track" cx="18" cy="18" r="16.5"></circle>
+        <circle class="lightbox-progress" cx="18" cy="18" r="16.5" pathLength="100"></circle>
+      </svg>
+    </button>
+    <div class="lightbox-caption">
+      <p id="lightbox-caption" class="lightbox-title"></p>
+      <p id="lightbox-counter" class="label"></p>
+    </div>
+    <dl id="lightbox-info" class="lightbox-info" aria-label="Photo info" hidden></dl>
+  </div>
+
   <script src="./js/format.js"></script>
+  <script src="./js/lightbox.js"></script>
   <script src="./js/main.js"></script>
 </body>
 </html>

@@ -506,3 +506,125 @@ main {
 .lightbox-info-toggle[aria-pressed="true"] {
   opacity: 1;
 }
+
+/* Home page: Play button beside Folders · Tags */
+.play-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.play-all[hidden] {
+  display: none;
+}
+
+.play-all:hover,
+.play-all:focus-visible {
+  color: var(--fg);
+}
+
+.play-all svg {
+  width: 0.75em;
+  height: 0.9em;
+  fill: currentColor;
+}
+
+/* Slideshow: fade in each photo, pause/play button, progress line */
+.lightbox-play {
+  display: none;
+}
+
+.lightbox-overlay.slideshow .lightbox-play {
+  display: block;
+  position: absolute;
+  top: 1rem;
+  right: 3.9rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  opacity: 0.75;
+  z-index: 2;
+}
+
+.lightbox-overlay.slideshow .lightbox-play:hover {
+  opacity: 1;
+}
+
+/* Pause icon (two bars) while playing; play triangle while paused. */
+.lightbox-play::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.5rem;
+  height: 0.55rem;
+  transform: translate(-50%, -50%);
+  border-left: 2px solid #fff;
+  border-right: 2px solid #fff;
+  box-sizing: border-box;
+}
+
+.lightbox-overlay.paused .lightbox-play::before {
+  width: 0;
+  height: 0;
+  margin-left: 0.08rem;
+  border-style: solid;
+  border-color: transparent;
+  border-left-color: #fff;
+  border-width: 0.3rem 0 0.3rem 0.5rem;
+}
+
+.lightbox-overlay.slideshow img {
+  transition: opacity 0.6s ease;
+}
+
+.lightbox-overlay.slideshow img.fading {
+  opacity: 0;
+  transition: none;
+}
+
+/* Countdown ring around the pause button: fills once per photo. */
+.lightbox-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+
+.lightbox-ring circle {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.ring-track {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+.lightbox-progress {
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+}
+
+.lightbox-progress.run {
+  animation: ring-fill linear forwards;
+}
+
+@keyframes ring-fill {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}

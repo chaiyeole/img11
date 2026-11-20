@@ -3,6 +3,8 @@ const Lightbox = (() => {
   const HIST_BINS = 64;
   // Above 2x, extra pixel density adds no visible detail at viewing distance.
   const MAX_DPR = 2;
+  // Slideshow: how long each photo stays up, counted from when it has loaded.
+  const SLIDE_MS = 5000;
   const SIZE_NAMES = [
     [1600, "phone version"],
     [2200, "1080p version"],
@@ -22,7 +24,10 @@ const Lightbox = (() => {
     { key: "taken", label: "Taken", format: formatTaken },
   ];
 
-  let overlayEl, imgEl, titleEl, counterEl, infoEl, infoBtn, prevBtn, nextBtn, closeBtn;
+  let overlayEl, imgEl, titleEl, counterEl, infoEl, infoBtn, prevBtn, nextBtn, closeBtn, playBtn, progressEl;
+  let slideshow = false; // opened as a slideshow (play controls shown)
+  let playing = false;
+  let slideTimer = null;
   let showInfo = false;
   let photos = [];
   let index = 0;
@@ -48,6 +53,9 @@ const Lightbox = (() => {
     prevBtn = overlayEl.querySelector(".lightbox-nav.prev");
     nextBtn = overlayEl.querySelector(".lightbox-nav.next");
     closeBtn = overlayEl.querySelector(".lightbox-close");
+    playBtn = overlayEl.querySelector(".lightbox-play");
+    progressEl = overlayEl.querySelector(".lightbox-progress");
+    if (playBtn) playBtn.addEventListener("click", togglePlay);
 
     prevBtn.addEventListener("click", prev);
     nextBtn.addEventListener("click", next);
@@ -62,6 +70,13 @@ const Lightbox = (() => {
     }
     imgEl.addEventListener("load", () => {
       if (showInfo) renderHistogram(photos[index]);
+      imgEl.classList.remove("fading");
+      scheduleNext();
+    });
+    // A photo that fails to load shouldn't stall the slideshow.
+    imgEl.addEventListener("error", () => {
+      imgEl.classList.remove("fading");
+      scheduleNext();
     });
     // Rotating a phone or moving the window to a bigger monitor: upgrade to a
     // larger file if the new screen needs one (never downgrade mid-view).
@@ -89,6 +104,10 @@ const Lightbox = (() => {
       else if (e.key === "ArrowLeft") prev();
       else if (e.key === "ArrowRight") next();
       else if (e.key === "i" || e.key === "I") toggleInfo();
+      else if (slideshow && (e.key === " " || e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        togglePlay();
+      }
     });
     overlayEl.addEventListener("touchstart", (e) => {
       touchStartX = e.changedTouches[0].clientX;
@@ -281,6 +300,47 @@ const Lightbox = (() => {
       `<path d="${d}"></path></svg>`;
   }
 
+  // --- Slideshow -----------------------------------------------------------
+  // The timer starts only once the photo is on screen, so a slow download
+  // never cuts a photo short. Manual prev/next restarts the countdown.
+  function scheduleNext() {
+    clearTimeout(slideTimer);
+    slideTimer = null;
+    if (!slideshow || !playing || !overlayEl.classList.contains("open")) return;
+    restartProgress();
+    slideTimer = setTimeout(() => {
+      if (photos.length > 1) next();
+    }, SLIDE_MS);
+  }
+
+  function restartProgress() {
+    if (!progressEl) return;
+    progressEl.classList.remove("run");
+    progressEl.getBoundingClientRect(); // reflow so the animation starts over
+    progressEl.style.animationDuration = `${SLIDE_MS}ms`;
+    progressEl.classList.add("run");
+  }
+
+  function setPlaying(on) {
+    playing = on;
+    overlayEl.classList.toggle("paused", !on);
+    if (playBtn) {
+      playBtn.setAttribute("aria-pressed", String(on));
+      playBtn.setAttribute("aria-label", on ? "Pause slideshow (space)" : "Play slideshow (space)");
+    }
+    if (!on) {
+      clearTimeout(slideTimer);
+      slideTimer = null;
+      if (progressEl) progressEl.classList.remove("run");
+    } else if (imgEl.complete && imgEl.naturalWidth) {
+      scheduleNext();
+    }
+  }
+
+  function togglePlay() {
+    if (slideshow) setPlaying(!playing);
+  }
+
   function enterFullscreen() {
     const request = overlayEl.requestFullscreen || overlayEl.webkitRequestFullscreen;
     if (request) request.call(overlayEl).catch(() => {});
@@ -294,6 +354,11 @@ const Lightbox = (() => {
   function show() {
     const photo = photos[index];
     shown = chooseSize(photo);
+    clearTimeout(slideTimer);
+    slideTimer = null;
+    if (progressEl) progressEl.classList.remove("run");
+    // In a slideshow, fade from black into each photo.
+    if (slideshow && imgEl.src !== shown.url) imgEl.classList.add("fading");
     imgEl.src = shown.url;
     imgEl.alt = photo.slug;
     if (titleEl) titleEl.textContent = albumName;
@@ -327,11 +392,14 @@ const Lightbox = (() => {
     });
   }
 
-  function open(photoList, startIndex, name) {
+  function open(photoList, startIndex, name, options = {}) {
     photos = photoList;
     index = startIndex;
     albumName = name || "";
+    slideshow = Boolean(options.slideshow);
+    overlayEl.classList.toggle("slideshow", slideshow);
     overlayEl.classList.add("open");
+    setPlaying(slideshow);
     if (!historyEntry) {
       history.pushState({ lightbox: true }, "");
       historyEntry = true;
@@ -342,7 +410,13 @@ const Lightbox = (() => {
 
   function close() {
     if (!overlayEl.classList.contains("open")) return;
-    overlayEl.classList.remove("open");
+    overlayEl.classList.remove("open", "slideshow", "paused");
+    slideshow = false;
+    playing = false;
+    clearTimeout(slideTimer);
+    slideTimer = null;
+    if (progressEl) progressEl.classList.remove("run");
+    imgEl.classList.remove("fading");
     imgEl.src = "";
     shown = null;
     exitFullscreen();
