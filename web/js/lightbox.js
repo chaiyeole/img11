@@ -28,6 +28,10 @@ const Lightbox = (() => {
   let slideshow = false; // opened as a slideshow (play controls shown)
   let playing = false;
   let slideTimer = null;
+  let slideStartedAt = 0; // when the running countdown (re)started
+  let slideLeft = SLIDE_MS; // ms the running countdown had when it (re)started
+  let pausedLeft = null; // ms left on this photo when paused mid-countdown
+  let flashEl;
   let showInfo = false;
   let photos = [];
   let index = 0;
@@ -55,7 +59,12 @@ const Lightbox = (() => {
     closeBtn = overlayEl.querySelector(".lightbox-close");
     playBtn = overlayEl.querySelector(".lightbox-play");
     progressEl = overlayEl.querySelector(".lightbox-progress");
+    flashEl = overlayEl.querySelector(".lightbox-flash");
     if (playBtn) playBtn.addEventListener("click", togglePlay);
+    // In a slideshow, clicking / tapping the photo pauses or resumes it.
+    imgEl.addEventListener("click", () => {
+      if (slideshow) togglePlay();
+    });
 
     prevBtn.addEventListener("click", prev);
     nextBtn.addEventListener("click", next);
@@ -302,15 +311,31 @@ const Lightbox = (() => {
 
   // --- Slideshow -----------------------------------------------------------
   // The timer starts only once the photo is on screen, so a slow download
-  // never cuts a photo short. Manual prev/next restarts the countdown.
+  // never cuts a photo short. Manual prev/next restarts the countdown; pause
+  // freezes it (and the ring) and play carries on from where it stopped.
   function scheduleNext() {
+    pausedLeft = null;
+    startCountdown(SLIDE_MS, true);
+  }
+
+  function startCountdown(ms, restartRing) {
     clearTimeout(slideTimer);
     slideTimer = null;
     if (!slideshow || !playing || !overlayEl.classList.contains("open")) return;
-    restartProgress();
+    if (restartRing) restartProgress();
+    if (progressEl) progressEl.style.animationPlayState = "running";
+    slideStartedAt = performance.now();
+    slideLeft = ms;
     slideTimer = setTimeout(() => {
       if (photos.length > 1) next();
-    }, SLIDE_MS);
+    }, ms);
+  }
+
+  function stopCountdown() {
+    clearTimeout(slideTimer);
+    slideTimer = null;
+    pausedLeft = null;
+    if (progressEl) progressEl.classList.remove("run");
   }
 
   function restartProgress() {
@@ -329,16 +354,34 @@ const Lightbox = (() => {
       playBtn.setAttribute("aria-label", on ? "Pause slideshow (space)" : "Play slideshow (space)");
     }
     if (!on) {
-      clearTimeout(slideTimer);
-      slideTimer = null;
-      if (progressEl) progressEl.classList.remove("run");
+      // Freeze mid-countdown: remember the time left and hold the ring.
+      if (slideTimer) {
+        pausedLeft = Math.max(0, slideLeft - (performance.now() - slideStartedAt));
+        clearTimeout(slideTimer);
+        slideTimer = null;
+        if (progressEl) progressEl.style.animationPlayState = "paused";
+      }
+    } else if (pausedLeft !== null) {
+      const left = pausedLeft;
+      pausedLeft = null;
+      startCountdown(left, false);
     } else if (imgEl.complete && imgEl.naturalWidth) {
       scheduleNext();
     }
   }
 
   function togglePlay() {
-    if (slideshow) setPlaying(!playing);
+    if (!slideshow) return;
+    setPlaying(!playing);
+    flash(playing);
+  }
+
+  // Centre sign: a brief pause or play sign that fades away.
+  function flash(nowPlaying) {
+    if (!flashEl) return;
+    flashEl.classList.remove("show-pause", "show-play");
+    flashEl.getBoundingClientRect(); // restart the fade if clicked quickly
+    flashEl.classList.add(nowPlaying ? "show-play" : "show-pause");
   }
 
   function enterFullscreen() {
@@ -354,9 +397,7 @@ const Lightbox = (() => {
   function show() {
     const photo = photos[index];
     shown = chooseSize(photo);
-    clearTimeout(slideTimer);
-    slideTimer = null;
-    if (progressEl) progressEl.classList.remove("run");
+    stopCountdown();
     // In a slideshow, fade from black into each photo.
     if (slideshow && imgEl.src !== shown.url) imgEl.classList.add("fading");
     imgEl.src = shown.url;
@@ -411,11 +452,10 @@ const Lightbox = (() => {
   function close() {
     if (!overlayEl.classList.contains("open")) return;
     overlayEl.classList.remove("open", "slideshow", "paused");
+    if (flashEl) flashEl.classList.remove("show-pause", "show-play");
     slideshow = false;
     playing = false;
-    clearTimeout(slideTimer);
-    slideTimer = null;
-    if (progressEl) progressEl.classList.remove("run");
+    stopCountdown();
     imgEl.classList.remove("fading");
     imgEl.src = "";
     shown = null;

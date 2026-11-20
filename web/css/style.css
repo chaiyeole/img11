@@ -530,9 +530,10 @@ main {
   color: var(--fg);
 }
 
+/* Sized to the capital letters of FOLDERS / TAGS beside it. */
 .play-all svg {
-  width: 0.75em;
-  height: 0.9em;
+  width: 0.62em;
+  height: 0.72em;
   fill: currentColor;
 }
 
@@ -627,4 +628,67 @@ main {
 @keyframes ring-fill {
   from { stroke-dashoffset: 100; }
   to { stroke-dashoffset: 0; }
+}
+
+/* Slideshow: click the photo to pause / resume; a sign in the centre says which. */
+.lightbox-overlay.slideshow img {
+  cursor: pointer;
+}
+
+.lightbox-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin: -2.25rem 0 0 -2.25rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lightbox-flash::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+/* Paused: two bars, shown briefly then fades out. */
+.lightbox-flash.show-pause {
+  animation: flash-out 0.7s ease forwards;
+}
+
+.lightbox-flash.show-pause::before {
+  width: 1.3rem;
+  height: 1.5rem;
+  border-left: 0.42rem solid #fff;
+  border-right: 0.42rem solid #fff;
+}
+
+/* Resumed: play triangle, fades out. */
+.lightbox-flash.show-play {
+  animation: flash-out 0.7s ease forwards;
+}
+
+.lightbox-flash.show-play::before {
+  width: 0;
+  height: 0;
+  margin-left: 0.2rem;
+  border-style: solid;
+  border-color: transparent;
+  border-left-color: #fff;
+  border-width: 0.8rem 0 0.8rem 1.3rem;
+}
+
+@keyframes flash-out {
+  0% { opacity: 1; transform: scale(1); }
+  60% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.15); }
 }
